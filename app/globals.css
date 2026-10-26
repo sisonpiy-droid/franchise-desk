@@ -597,3 +597,17 @@ table td.num {
 .dio-tag.is-active .dp-head {
   box-shadow: 0 0 0 2px #fff inset, 0 0 26px 6px color-mix(in srgb, var(--pin, #8f7cff) 85%, transparent);
 }
+
+/* landing title: shimmering letters and a pulsing map-pin O */
+.shimmer-text {
+  background: linear-gradient(100deg, #7fe8c0 15%, #ffffff 38%, #3cf2c0 58%, #7fe8c0 80%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 5.5s linear infinite;
+}
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -100% 0; } }
+.pin-pulse { animation: pinpulse 2.4s ease-out infinite; }
+@keyframes pinpulse { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(2.1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .shimmer-text, .pin-pulse { animation: none; } .shimmer-text { color: #7fe8c0; background: none; } }

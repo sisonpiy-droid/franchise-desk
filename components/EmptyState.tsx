@@ -2,7 +2,7 @@
 
 import { CATEGORY_IDS, CATEGORY_PRESETS, type CategoryId } from "@/lib/engine/categories";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useWordsIn, Words } from "./motion";
+import { useWordsIn } from "./motion";
 import dynamic from "next/dynamic";
 import { Icon } from "./icons";
 import { cityPoints } from "@/lib/map/terrain";
@@ -72,9 +72,29 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
     >
       {map3d && <Diorama source={{ kind: "region" }} points={points} overlay={zones} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} reducedMotion={reduced} onFail={() => setMap3d(false)} autoRotate hint="Drag to rotate · scroll to zoom · click a city to see its requests" />}
       <div ref={hero} className="pointer-events-none absolute inset-x-0 top-5 z-[5] hidden px-4 text-center sm:block">
-        <h1 className="font-[var(--font-hud)] text-[clamp(30px,4.4vw,58px)] font-bold uppercase leading-none tracking-[0.06em]" style={{ color: "#eafff5", filter: "drop-shadow(0 0 22px rgba(60,242,192,.55)) drop-shadow(0 6px 20px rgba(0,0,0,.7))" }}>
-          <Words text="Your territories" />
+        <h1 className="flex flex-wrap items-center justify-center gap-x-[0.4em] font-[var(--font-hud)] text-[clamp(32px,4.8vw,64px)] font-bold uppercase leading-none tracking-[0.07em]" style={{ filter: "drop-shadow(0 0 20px rgba(60,242,192,.5)) drop-shadow(0 6px 20px rgba(0,0,0,.75))" }} aria-label="Your territories">
+          <span aria-hidden className="inline-flex">
+            {"YOUR".split("").map((ch, i) => <span key={i} className="word inline-block text-[#eafff5]">{ch}</span>)}
+          </span>
+          <span aria-hidden className="inline-flex items-center">
+            {"TERRITORIES".split("").map((ch, i) =>
+              ch === "O" ? (
+                <span key={i} className="word relative inline-grid size-[0.82em] place-items-center align-middle" style={{ margin: "0 0.04em" }}>
+                  <i className="pin-ring absolute inset-0 rounded-full border-[0.09em] border-[#3cf2c0]" />
+                  <i className="pin-pulse absolute inset-0 rounded-full border-[0.05em] border-[#3cf2c0]" />
+                  <i className="block size-[0.26em] rounded-full bg-[#eafff5]" style={{ boxShadow: "0 0 14px #3cf2c0" }} />
+                </span>
+              ) : (
+                <span key={i} className="word shimmer-text inline-block">{ch}</span>
+              ),
+            )}
+          </span>
         </h1>
+        <div className="fade-in mx-auto mt-3 flex max-w-[520px] items-center gap-3" aria-hidden>
+          <i className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, #3cf2c0aa)" }} />
+          <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M8 19s6-5.4 6-10.2A6 6 0 0 0 2 8.8C2 13.6 8 19 8 19Z" stroke="#9af0c4" strokeWidth="1.6" /><circle cx="8" cy="8.6" r="2.2" fill="#3cf2c0" /></svg>
+          <i className="h-px flex-1" style={{ background: "linear-gradient(270deg, transparent, #3cf2c0aa)" }} />
+        </div>
         <p className="fade-in mt-2.5 text-[clamp(14px,1.5vw,19px)] tracking-wide text-[#d9fff0]" style={{ textShadow: "0 2px 18px rgba(0,0,0,.8)" }}>
           Live on the map. <span className="text-[#9af0c4]">Click on any to see its requests.</span>
         </p>

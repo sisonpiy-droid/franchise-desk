@@ -1,5 +1,6 @@
 "use client";
 
+import { CATEGORY_IDS, CATEGORY_PRESETS, type CategoryId } from "@/lib/engine/categories";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Icon } from "./icons";
@@ -16,7 +17,7 @@ const Diorama = dynamic(() => import("./map/Diorama"), {
   loading: () => <div className="grid h-full place-items-center text-[13px] text-muted">Building the 3D view of India…</div>,
 });
 
-export function EmptyState({ onFile, onSample, error, loading }: { onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean }) {
+export function EmptyState({ onFile, onSample, error, loading, category, onCategory }: { onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean; category: CategoryId; onCategory: (c: CategoryId) => void }) {
   const [over, setOver] = useState(false);
   // before any upload, the pins count the requests in the bundled sample file (invented applicants), marked as sample
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
@@ -76,6 +77,15 @@ export function EmptyState({ onFile, onSample, error, loading }: { onFile: (f: F
             {error}
           </p>
         )}
+        <label className="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#0d0d14cc] px-3 py-2 text-[13px] text-ink-2 backdrop-blur">
+          What kind of store is this?
+          <select value={category} onChange={(e) => onCategory(e.target.value as CategoryId)} aria-label="Type of retail store" className="rounded-md border border-white/10 bg-[#101019] px-2 py-1 text-[13px] text-ink outline-none focus:border-neon">
+            {CATEGORY_IDS.map((id) => (
+              <option key={id} value={id}>{CATEGORY_PRESETS[id].label}</option>
+            ))}
+          </select>
+          <span className="basis-full text-center text-[11.5px] text-muted">The Excel file does not say, so this sets the costs, sizes and timings every decision uses. Change it any time.</span>
+        </label>
         <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[#0d0d14cc] p-1.5 shadow-2xl backdrop-blur">
           <label htmlFor="file" className="neon-btn inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[14px] font-bold">
             <Icon.Upload /> {loading ? "Reading the workbook…" : "Upload your data"}

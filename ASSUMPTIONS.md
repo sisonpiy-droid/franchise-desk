@@ -69,3 +69,6 @@ The vocabulary in SPEC 5 is used as given. Six codes were added where none fit: 
 - Rules first: the model is called only when the rule parser cannot read a message. It returns commands only; IDs must appear in the message or the recent conversation; facts must be grounded in the message.
 - Hindi and Kannada answers are translated from the English answer and rejected if any number or ID differs.
 - Sent to the model: the message, application and territory IDs. Never names, notes or scores.
+
+## Store type (site-wide dropdown)
+The Excel file does not say what the brand sells, so the user picks a store type on the upload screen or in the top bar. The choice replaces the base policy and every decision re-runs from the same file; logged updates stay. **General store** is the brand's original defaults. The other types (quick-service restaurant, pharmacy, apparel and footwear, electronics and mobile, eyewear and optical) change fit-out and stock cost per sq ft, franchise fee, ideal and minimum shop size, sales per sq ft, gross margin, royalty, running costs, staff cost, safety stock, fit-out weeks and training weeks. All of these numbers are illustrative planning assumptions, not market data, and every one stays editable in the Policy panel. See .

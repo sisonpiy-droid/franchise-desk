@@ -1,101 +1,105 @@
-// Store categories for the assumed-orders heatmap. Every number is an illustrative planning assumption, not data:
-// the file has no order history. A category changes the order volumes, the size of a typical store, how fast a new store
-// ramps up, how much the shop's position matters, and what the model is told drives demand around a pin code.
-// It does not change any decision (approve, hold, decline).
-import type { Tier } from "./types";
+// Store types. The Excel file does not say what kind of store the brand sells, so the user picks one and the whole
+// policy follows: what a store costs to fit out and stock, how big it is, what it earns, how long fit-out and training take,
+// how much stock to hold. Every number is an illustrative planning assumption, not market data, editable in the Policy panel
+// like any other setting. "General store" leaves the brand's original defaults untouched.
+import { clonePolicy, type Policy } from "./policy";
+import { DEFAULT_POLICY } from "./policy";
 
 export type CategoryId = "qsr" | "general" | "pharmacy" | "apparel" | "electronics" | "eyewear";
+type ByTier = { "1": number; "2": number; "3": number };
 
-export interface Category {
+export interface CategoryPreset {
   id: CategoryId;
   label: string;
+  /** Wording used in explanations ("a pharmacy", "this store"). */
+  noun: string;
   blurb: string;
-  /** Orders (bills) a month for a mature store of typical size, by city tier. */
-  ordersPerMonth: Record<Tier, number>;
-  /** Typical shop size in sq ft, by city tier. Volume scales with size against this. */
-  typicalSize: Record<Tier, number>;
-  /** A new store starts at this share of its mature volume... */
-  startShare: number;
-  /** ...and reaches full volume after this many months. */
-  rampMonths: number;
-  /** How the shop's position changes footfall. */
-  floor: { Ground: number; Mall: number; Upper: number; Unknown: number };
-  /** What drives demand for this kind of store, in the words the model is given. */
-  drivers: string;
+  capex?: Partial<{ fitoutPerSqft: ByTier; stockPerSqft: ByTier; franchiseFeeLakh: ByTier; idealSize: ByTier; minSize: ByTier }>;
+  payback?: Partial<{ revenuePerSqftMonth: ByTier; grossMarginPct: number; royaltyPct: number; otherOpexPct: number; staffCostLakhMonth: ByTier }>;
+  supply?: Partial<{ safetyStockDaysPerLeadDay: number; minSafetyStockDays: number }>;
+  fitoutWeeks?: number;
+  /** Training weeks for first-time, some-experience and experienced partners. */
+  trainingWeeks?: [number, number, number];
 }
 
-export const CATEGORIES: Record<CategoryId, Category> = {
+const t = (a: number, b: number, c: number): ByTier => ({ "1": a, "2": b, "3": c });
+
+export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
+  general: { id: "general", label: "General store", noun: "retail store", blurb: "Everyday goods and kirana-style shops. The brand's original defaults." },
   qsr: {
     id: "qsr",
     label: "Quick-service restaurant (QSR)",
-    blurb: "Fast food and cafes: many small orders, strong at food courts and busy corners, quick to ramp.",
-    ordersPerMonth: { 1: 3000, 2: 2200, 3: 1400 },
-    typicalSize: { 1: 400, 2: 300, 3: 250 },
-    startShare: 0.5,
-    rampMonths: 4,
-    floor: { Ground: 1, Mall: 1.3, Upper: 0.5, Unknown: 0.8 },
-    drivers: "walk-in footfall at lunch and evening, offices, colleges and schools, transit stops, food courts, nightlife and busy street corners",
-  },
-  general: {
-    id: "general",
-    label: "General store",
-    blurb: "Everyday goods and kirana-style shops: steady neighbourhood demand.",
-    ordersPerMonth: { 1: 900, 2: 650, 3: 420 },
-    typicalSize: { 1: 600, 2: 450, 3: 350 },
-    startShare: 0.35,
-    rampMonths: 9,
-    floor: { Ground: 1, Mall: 1.15, Upper: 0.6, Unknown: 0.85 },
-    drivers: "residential density, nearby markets and bus stops, household incomes, and how many similar shops already serve the area",
+    noun: "restaurant",
+    blurb: "Fast food and cafes: costly kitchen fit-out, little stock, small shops, high sales per sq ft, perishables.",
+    capex: { fitoutPerSqft: t(2800, 2200, 1700), stockPerSqft: t(400, 300, 250), franchiseFeeLakh: t(6, 5, 4), idealSize: t(400, 300, 250), minSize: t(250, 200, 150) },
+    payback: { revenuePerSqftMonth: t(4500, 3200, 2200), grossMarginPct: 60, royaltyPct: 8, otherOpexPct: 12, staffCostLakhMonth: t(2.5, 1.8, 1.3) },
+    supply: { safetyStockDaysPerLeadDay: 1, minSafetyStockDays: 2 },
+    fitoutWeeks: 6,
+    trainingWeeks: [4, 3, 2],
   },
   pharmacy: {
     id: "pharmacy",
     label: "Pharmacy",
-    blurb: "Health and wellness: driven by homes, clinics and hospitals, loyal repeat customers.",
-    ordersPerMonth: { 1: 700, 2: 520, 3: 360 },
-    typicalSize: { 1: 350, 2: 280, 3: 220 },
-    startShare: 0.45,
-    rampMonths: 5,
-    floor: { Ground: 1, Mall: 0.9, Upper: 0.5, Unknown: 0.8 },
-    drivers: "residential density, older residents, nearby clinics and hospitals, and easy ground-level access",
+    noun: "pharmacy",
+    blurb: "Medicines and wellness: heavy opening stock, thin margins, small ground-floor shops, licensing to complete.",
+    capex: { fitoutPerSqft: t(1600, 1200, 900), stockPerSqft: t(3000, 2500, 2000), franchiseFeeLakh: t(3, 3, 2.5), idealSize: t(350, 280, 220), minSize: t(250, 200, 150) },
+    payback: { revenuePerSqftMonth: t(2600, 2000, 1400), grossMarginPct: 20, royaltyPct: 3, otherOpexPct: 4, staffCostLakhMonth: t(1.2, 0.9, 0.7) },
+    supply: { safetyStockDaysPerLeadDay: 2, minSafetyStockDays: 3 },
+    fitoutWeeks: 4,
+    trainingWeeks: [4, 3, 2],
   },
   apparel: {
     id: "apparel",
     label: "Apparel and footwear",
-    blurb: "Fashion retail: destination shopping, best in malls and high streets, slower to build.",
-    ordersPerMonth: { 1: 600, 2: 420, 3: 280 },
-    typicalSize: { 1: 800, 2: 650, 3: 500 },
-    startShare: 0.3,
-    rampMonths: 10,
-    floor: { Ground: 1, Mall: 1.25, Upper: 0.7, Unknown: 0.85 },
-    drivers: "high-street and mall shopping districts, college and office crowds, household incomes, festival and wedding shopping",
+    noun: "apparel store",
+    blurb: "Fashion retail: large shops, stylish fit-out, bulky seasonal stock, slower to build.",
+    capex: { fitoutPerSqft: t(2200, 1700, 1300), stockPerSqft: t(2500, 1800, 1400), franchiseFeeLakh: t(5, 4, 3.5), idealSize: t(800, 650, 500), minSize: t(500, 400, 300) },
+    payback: { revenuePerSqftMonth: t(1500, 1100, 800), grossMarginPct: 45, royaltyPct: 5, otherOpexPct: 4, staffCostLakhMonth: t(1.8, 1.3, 0.9) },
+    supply: { safetyStockDaysPerLeadDay: 4, minSafetyStockDays: 6 },
+    fitoutWeeks: 5,
+    trainingWeeks: [3, 2, 1],
   },
   electronics: {
     id: "electronics",
     label: "Electronics and mobile",
-    blurb: "Phones and gadgets: fewer, larger purchases, strong near electronics markets.",
-    ordersPerMonth: { 1: 500, 2: 380, 3: 260 },
-    typicalSize: { 1: 600, 2: 500, 3: 400 },
-    startShare: 0.35,
-    rampMonths: 8,
-    floor: { Ground: 1, Mall: 1.2, Upper: 0.7, Unknown: 0.85 },
-    drivers: "electronics markets and clusters, college and office crowds, household incomes, and nearby service centres",
+    noun: "electronics store",
+    blurb: "Phones and gadgets: costly stock, thin margins, mid-size shops, fast-moving range.",
+    capex: { fitoutPerSqft: t(1700, 1300, 1000), stockPerSqft: t(4500, 3500, 2800), franchiseFeeLakh: t(4, 3.5, 3), idealSize: t(600, 500, 400), minSize: t(400, 320, 260) },
+    payback: { revenuePerSqftMonth: t(3500, 2800, 2000), grossMarginPct: 14, royaltyPct: 3, otherOpexPct: 3, staffCostLakhMonth: t(1.2, 0.9, 0.7) },
+    supply: { safetyStockDaysPerLeadDay: 3, minSafetyStockDays: 5 },
+    fitoutWeeks: 4,
+    trainingWeeks: [3, 2, 1],
   },
   eyewear: {
     id: "eyewear",
     label: "Eyewear and optical",
-    blurb: "Eye tests and frames: appointment-led, builds slowly, favours busy shopping areas.",
-    ordersPerMonth: { 1: 350, 2: 260, 3: 180 },
-    typicalSize: { 1: 450, 2: 400, 3: 300 },
-    startShare: 0.3,
-    rampMonths: 10,
-    floor: { Ground: 1, Mall: 1.1, Upper: 0.65, Unknown: 0.85 },
-    drivers: "shopping districts and malls, office and college crowds, household incomes, nearby clinics and eye hospitals",
+    noun: "optical store",
+    blurb: "Eye tests and frames: premium fit-out, high margins, small shops, optometry basics to learn.",
+    capex: { fitoutPerSqft: t(2400, 1900, 1500), stockPerSqft: t(2000, 1600, 1300), franchiseFeeLakh: t(5, 4.5, 4), idealSize: t(450, 400, 300), minSize: t(300, 250, 200) },
+    payback: { revenuePerSqftMonth: t(2400, 1900, 1400), grossMarginPct: 60, royaltyPct: 5, otherOpexPct: 4, staffCostLakhMonth: t(1.4, 1, 0.8) },
+    supply: { safetyStockDaysPerLeadDay: 4, minSafetyStockDays: 6 },
+    fitoutWeeks: 4,
+    trainingWeeks: [4, 3, 2],
   },
 };
 
-export const CATEGORY_IDS = Object.keys(CATEGORIES) as CategoryId[];
+export const CATEGORY_IDS = Object.keys(CATEGORY_PRESETS) as CategoryId[];
 export const DEFAULT_CATEGORY: CategoryId = "general";
 
-export function categoryOf(id: unknown): Category {
-  return typeof id === "string" && id in CATEGORIES ? CATEGORIES[id as CategoryId] : CATEGORIES[DEFAULT_CATEGORY];
+export function presetOf(id: unknown): CategoryPreset {
+  return typeof id === "string" && id in CATEGORY_PRESETS ? CATEGORY_PRESETS[id as CategoryId] : CATEGORY_PRESETS[DEFAULT_CATEGORY];
+}
+
+/** The brand's policy with the chosen store type's numbers laid over it. "General store" returns the defaults unchanged. */
+export function policyFor(id: unknown): Policy {
+  const preset = presetOf(id);
+  const p = clonePolicy(DEFAULT_POLICY);
+  if (preset.id === DEFAULT_CATEGORY) return p;
+  Object.assign(p.capex, preset.capex ?? {});
+  Object.assign(p.payback, preset.payback ?? {});
+  Object.assign(p.supply, preset.supply ?? {});
+  if (preset.fitoutWeeks !== undefined) p.timeline.fitoutWeeks = preset.fitoutWeeks;
+  if (preset.trainingWeeks) p.training.tracks.forEach((track, i) => (track.weeks = preset.trainingWeeks![i] ?? track.weeks));
+  p.brand = { ...p.brand, category: preset.noun };
+  return p;
 }

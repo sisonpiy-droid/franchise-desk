@@ -20,7 +20,7 @@ import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
 import { BriefView } from "./brief/BriefView";
-import { OrdersHeat } from "./dashboard/OrdersHeat";
+import { CATEGORY_IDS, CATEGORY_PRESETS, DEFAULT_CATEGORY, policyFor, type CategoryId } from "@/lib/engine/categories";
 import { Sidebar } from "./hud/Sidebar";
 import { buildTerrainData, territoryPoints } from "@/lib/map/terrain";
 import { centroid } from "@/lib/engine/geo";
@@ -45,6 +45,8 @@ export default function Desk() {
   // Explore (the map experience) is the default; Summary holds the counts, list, ledger and the desk
   const [tab, setTab] = useState<"explore" | "summary">("explore");
   const [briefOpen, setBriefOpen] = useState(false);
+  // The Excel file does not say what the brand sells, so the user picks a store type and the whole policy follows.
+  const [category, setCategory] = useState<CategoryId>(DEFAULT_CATEGORY);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   const [ai, setAi] = useState<"unknown" | "on" | "off">("unknown");
@@ -80,7 +82,7 @@ export default function Desk() {
 
   const start = useCallback(
     (ds: Dataset) => {
-      setChat({ session: newSession(ds, DEFAULT_POLICY, today), memory: { lastIds: [], lastTerritories: [] }, pending: null });
+      setChat({ session: newSession(ds, policyFor(category), today), memory: { lastIds: [], lastTerritories: [] }, pending: null });
       setTurns([]);
       setSelected(null);
       setTab("explore");
@@ -90,8 +92,15 @@ export default function Desk() {
       setNotice(null);
       setError(null);
     },
-    [today],
+    [today, category],
   );
+
+  // Changing the store type re-decides everything from the same file: new base policy, same logged updates.
+  const changeCategory = useCallback((id: CategoryId) => {
+    setCategory(id);
+    setChat((c) => (c ? { ...c, session: { ...c.session, basePolicy: policyFor(id) } } : c));
+    setNotice(`Store type set to ${CATEGORY_PRESETS[id].label}. Every decision re-ran with its costs, sizes and timings.`);
+  }, []);
 
   const loadBuffer = useCallback(
     (buf: ArrayBuffer, name: string, source: "upload" | "sample") => {
@@ -281,6 +290,16 @@ export default function Desk() {
               ))}
             </div>
           )}
+          {result && (
+            <label className="ml-3 hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[12px] text-muted lg:flex">
+              Store type
+              <select value={category} onChange={(e) => changeCategory(e.target.value as CategoryId)} title={CATEGORY_PRESETS[category].blurb} aria-label="Type of retail store" className="max-w-[190px] truncate rounded-md border border-white/10 bg-[#101019] px-2 py-1 text-[12.5px] text-ink outline-none focus:border-neon">
+                {CATEGORY_IDS.map((id) => (
+                  <option key={id} value={id}>{CATEGORY_PRESETS[id].label}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {result && dataset && tab === "summary" && (
             <div className="num ml-3 hidden min-w-0 items-center gap-2 whitespace-nowrap text-[12px] text-muted md:flex">
               {dataset.source !== "sample" && <span className="max-w-[22ch] truncate" title={dataset.fileName}>{dataset.fileName}</span>}
@@ -320,7 +339,7 @@ export default function Desk() {
       </header>
 
       {!result || !dataset || !steps ? (
-        <EmptyState onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
+        <EmptyState category={category} onCategory={setCategory} onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
       ) : tab === "explore" ? (
         <Explore
           result={result}
@@ -354,14 +373,7 @@ export default function Desk() {
             {briefOpen ? (
               <BriefView result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
             ) : (
-              <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
-                <div className="flex h-[62vh] min-h-[420px] flex-col">
                   <WorldMap result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
-                </div>
-                <div className="p-4 pb-32">
-                  <OrdersHeat result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
-                </div>
-              </div>
             )}
           </section>
           {notice && (

@@ -347,7 +347,7 @@ export default function Desk() {
           <section className="order-1 flex min-h-0 min-w-0 flex-col lg:order-2">
             <HudStats result={result} dataset={dataset} statusFilter={statusFilter} onStatus={setStatusFilter} onNotes={() => setPanel("notes")} />
             {error && <p role="alert" className="px-4 py-2 text-[13px] text-declined">{error}</p>}
-            <WorldMap result={result} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
+            <WorldMap result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
           </section>
           {notice && (
             <div className="rise fixed bottom-[96px] left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] shadow-xl lg:left-[calc(50%+200px)]" role="status">
@@ -431,7 +431,10 @@ const TerrainMap = dynamic(() => import("./map/TerrainMap"), {
 });
 
 /** The world behind the HUD. Optional by design: any failure leaves a calm backdrop and the roster carries everything. */
-function WorldMap({ result, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { result: RunResult; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
+function WorldMap({ result: fullResult, statusFilter, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { result: RunResult; statusFilter: Status[]; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
+  // Status chips filter the map too: only requests with a chosen status are counted, listed and drawn,
+  // and a territory with none of them drops off the map.
+  const result = useMemo<RunResult>(() => (statusFilter.length ? { ...fullResult, decisions: fullResult.decisions.filter((d) => statusFilter.includes(d.status)) } : fullResult), [fullResult, statusFilter]);
   // India in 3D with territory names. Click a territory: fly into it with its requests and pin areas.
   // Click a request: fly to its pin with its area, service ring, nearby stores, rivals and the satellite view.
   const [mode, setMode] = useState<"overview" | "explore">("overview");
@@ -443,7 +446,7 @@ function WorldMap({ result, selected, highlight, onSelect, activeTerritory, onPi
   const [flat, setFlat] = useState(false);
   const [reduced, setReduced] = useState(false);
   useEffect(() => setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches), []);
-  const points = useMemo(() => territoryPoints(result), [result]);
+  const points = useMemo(() => territoryPoints(result).filter((p) => !statusFilter.length || (p.count ?? 0) > 0), [result, statusFilter]);
   const list = useMemo(() => (openKey ? territoryRequests(result, openKey) : []), [result, openKey]);
   const requestDecision = request ? result.decisions.find((d) => d.key === request) ?? null : null;
   const overlay = useMemo(() => (openKey || requestDecision ? territoryOverlay(result, openKey && !openKey.startsWith("city:") ? openKey : requestDecision?.territoryKey ?? null, requestDecision) : null), [result, openKey, requestDecision]);

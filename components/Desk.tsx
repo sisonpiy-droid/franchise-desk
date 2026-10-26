@@ -19,6 +19,7 @@ import { AskDesk, type Turn } from "./AskDesk";
 import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
+import { BriefView } from "./brief/BriefView";
 import { Sidebar } from "./hud/Sidebar";
 import { buildTerrainData, territoryPoints } from "@/lib/map/terrain";
 import { centroid } from "@/lib/engine/geo";
@@ -41,7 +42,7 @@ export default function Desk() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   // Explore (the map experience) is the default; Summary holds the counts, list, ledger and the desk
-  const [tab, setTab] = useState<"explore" | "summary">("explore");
+  const [tab, setTab] = useState<"explore" | "summary" | "extra">("explore");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   const [ai, setAi] = useState<"unknown" | "on" | "off">("unknown");
@@ -271,9 +272,9 @@ export default function Desk() {
           </a>
           {result && (
             <div className="ml-2 flex shrink-0 rounded-full border border-white/10 bg-white/[0.03] p-0.5" role="tablist" aria-label="View">
-              {(["explore", "summary"] as const).map((k) => (
+              {(["explore", "summary", "extra"] as const).map((k) => (
                 <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`rounded-full px-3.5 py-1 text-[13px] font-semibold transition-colors ${tab === k ? "neon-btn" : "text-ink-2 hover:text-ink"}`}>
-                  {k === "explore" ? "Explore" : "Summary"}
+                  {k === "explore" ? "Explore" : k === "summary" ? "Summary" : "Executive brief"}
                 </button>
               ))}
             </div>
@@ -318,6 +319,8 @@ export default function Desk() {
 
       {!result || !dataset || !steps ? (
         <EmptyState onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
+      ) : tab === "extra" ? (
+        <BriefView result={result} dataset={dataset} policy={policy} today={today} onSelect={(k) => { setSelected(k); setTab("summary"); }} />
       ) : tab === "explore" ? (
         <Explore
           result={result}

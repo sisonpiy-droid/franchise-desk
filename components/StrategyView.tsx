@@ -2,7 +2,8 @@
 // Strategy: two plain answers built from the engine's own decisions.
 // "Where should we expand?" ranks territories by a written rule. "Who should we invest our time in?" groups partners by what
 // the engine can prove. Every verdict shows its reason in numbers; nothing here changes a decision.
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useScrollReveal, Words } from "./motion";
 import { fmtDate } from "@/lib/engine/plan";
 import type { Step } from "@/lib/engine/session";
 import { GROUP_LABEL, GROUP_RULE, VERDICT_LABEL, VERDICT_RULE, partnerShortlist, territoryRanking, type PartnerRow, type ShortlistGroup, type TerritoryVerdict } from "@/lib/engine/strategy";
@@ -21,24 +22,26 @@ export function StrategyView({ step, today, onOpenTerritory, onOpenPartner }: { 
   const rows = useMemo(() => territoryRanking(step), [step]);
   const list = useMemo(() => partnerShortlist(step, today), [step, today]);
   const [group, setGroup] = useState<ShortlistGroup>("invest");
+  const root = useRef<HTMLElement>(null);
+  useScrollReveal(root, [group, rows.length]);
   const counts = rows.reduce<Record<string, number>>((m, r) => ((m[r.verdict] = (m[r.verdict] ?? 0) + 1), m), {});
   const shown = list[group];
   const num = (v: number | null, d = 1) => (v === null ? "–" : (Math.round(v * 10 ** d) / 10 ** d).toString());
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 py-5 lg:h-[calc(100dvh-53px)] lg:px-8" data-testid="strategy">
+    <main ref={root} className="flex-1 overflow-y-auto lg:flex-none px-4 py-5 lg:h-[calc(100dvh-53px)] lg:px-8" data-testid="strategy">
       <div className="mx-auto grid max-w-[1180px] gap-10">
         {/* 1. Where to expand */}
         <section aria-labelledby="where">
-          <h2 id="where" className="text-[20px] font-semibold">Where should we expand?</h2>
-          <p className="mt-1 max-w-[760px] text-[13.5px] text-ink-2">
+          <h2 id="where" data-reveal="heading" className="text-[20px] font-semibold"><Words text="Where should we expand?" /></h2>
+          <p data-reveal="fade" className="mt-1 max-w-[760px] text-[13.5px] text-ink-2">
             Every territory gets one verdict from a written rule, best place to act first. Within a verdict, High priority comes first, then bigger cities, then more open slots.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-[12.5px]">
+          <div data-reveal="group" className="mt-3 flex flex-wrap gap-2 text-[12.5px]">
             {(Object.keys(VERDICT_LABEL) as TerritoryVerdict[]).map((v) => (
               <span key={v} className="rounded-full border border-line px-2.5 py-1" title={VERDICT_RULE[v]}>
                 <i className="mr-1.5 inline-block size-2 rounded-full align-middle" style={{ background: VERDICT_TONE[v] }} aria-hidden />
-                {VERDICT_LABEL[v]} <b className="num">{counts[v] ?? 0}</b>
+                {VERDICT_LABEL[v]} <b className="num" data-count={counts[v] ?? 0}>{counts[v] ?? 0}</b>
               </span>
             ))}
           </div>
@@ -55,7 +58,7 @@ export function StrategyView({ step, today, onOpenTerritory, onOpenPartner }: { 
                   <th className="px-3 py-2 font-medium">Why</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody data-reveal="rows">
                 {rows.map((r) => (
                   <tr key={r.key} className="cursor-pointer border-t border-line align-top hover:bg-surface" onClick={() => onOpenTerritory(r.key)}>
                     <td className="px-3 py-2">
@@ -80,13 +83,13 @@ export function StrategyView({ step, today, onOpenTerritory, onOpenPartner }: { 
 
         {/* 2. Who to invest in */}
         <section aria-labelledby="who">
-          <h2 id="who" className="text-[20px] font-semibold">Who should we invest our time in?</h2>
-          <p className="mt-1 max-w-[760px] text-[13.5px] text-ink-2">Partners sorted by what the engine can prove: funds against the estimated need, estimated payback, risk flags and how soon they could open.</p>
-          <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Partner groups">
+          <h2 id="who" data-reveal="heading" className="text-[20px] font-semibold"><Words text="Who should we invest our time in?" /></h2>
+          <p data-reveal="fade" className="mt-1 max-w-[760px] text-[13.5px] text-ink-2">Partners sorted by what the engine can prove: funds against the estimated need, estimated payback, risk flags and how soon they could open.</p>
+          <div data-reveal="group" className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Partner groups">
             {(Object.keys(GROUP_LABEL) as ShortlistGroup[]).map((g) => (
               <button key={g} type="button" role="tab" aria-selected={group === g} onClick={() => setGroup(g)} className={`rounded-full border px-3.5 py-1.5 text-[13px] ${group === g ? "border-neon bg-surface-2 font-semibold" : "border-line hover:bg-surface-2"}`}>
                 <i className="mr-1.5 inline-block size-2 rounded-full align-middle" style={{ background: GROUP_TONE[g] }} aria-hidden />
-                {GROUP_LABEL[g]} <b className="num">{list[g].length}</b>
+                {GROUP_LABEL[g]} <b className="num" data-count={list[g].length}>{list[g].length}</b>
               </button>
             ))}
           </div>
@@ -104,7 +107,7 @@ export function StrategyView({ step, today, onOpenTerritory, onOpenPartner }: { 
                   <th className="px-3 py-2 font-medium">{group === "fix" ? "Fix that moves them" : group === "walk" ? "Why not" : "Main risk and next step"}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody key={group} data-reveal="rows">
                 {shown.map((r: PartnerRow) => (
                   <tr key={r.key} className="cursor-pointer border-t border-line align-top hover:bg-surface" onClick={() => onOpenPartner(r.key)}>
                     <td className="px-3 py-2">

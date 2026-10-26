@@ -127,7 +127,7 @@ export function Explore({ result, onFullDecision, onSummary, openCity, onOpened 
         flat ? (
           <FlatIndia points={tPoints} onPick={open} />
         ) : (
-          <Diorama key="overview" source={{ kind: "region" }} points={tPoints} overlay={zones} onPick={open} reducedMotion={reduced} autoRotate onFail={() => setFlat(true)} hint="Drag to rotate · scroll to zoom · click a territory" />
+          <Diorama key={wide ? "overview-india" : "overview"} source={{ kind: wide ? "india" : "region" }} points={tPoints} overlay={zones} onPick={open} reducedMotion={reduced} autoRotate onFail={() => setFlat(true)} hint="Drag to rotate · scroll to zoom · click a territory" />
         )
       ) : flat ? (
         <FlatIndia points={reqPoints} activeKey={request} onPick={setRequest} />

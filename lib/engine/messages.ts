@@ -21,10 +21,10 @@ type Pack = {
 };
 
 const EN: Pack = {
-  approved: "Dear {name}, good news: your application {id} for a store at pin {pin} is approved. Next: KYC and the franchise agreement in weeks 1 to 2. Your {weeks}-week {track} training will be in English. No fee is due until your documents are verified and the agreement is signed.",
+  approved: "Dear {name}, congratulations: your application {id} for a store at pin {pin} is approved. Next: KYC and the franchise agreement in weeks 1 to 2. Your {weeks}-week {track} training will be in English, and your store is on track to be ready by {ready}. No fee is due until your documents are verified and the agreement is signed.",
   condSite: "Dear {name}, we have reserved a slot for you in {city} until {date}. To confirm it, please find a ground-floor space of at least {min} sq ft in pin {pins} and send us the details.",
   condDoc: "Dear {name}, we have reserved a slot for you at pin {pin} until {date}. To confirm it, please send: {task}. No fee is due until your documents are verified and the agreement is signed.",
-  hold: "Dear {name}, before we can decide on application {id} we need: {ask}. Please reply within 14 days.",
+  hold: "Dear {name}, thank you for applying. Your application {id} is close to a decision, and we need one thing from you first: {ask}. Please send it by {by}; once we have it, we will tell you our decision.",
   wait: "Dear {name}, you are number {q} on the waiting list for {city}. Another applicant ranked higher for the available slot. We will contact you as soon as a slot opens.",
   waitPin: " A space in pin {pins} would keep you eligible.",
   declined: "Dear {name}, we cannot proceed with application {id} right now: {reason}. You are welcome to re-apply whenever this changes.",
@@ -67,10 +67,10 @@ const EN: Pack = {
 };
 
 const HI: Pack = {
-  approved: "प्रिय {name}, खुशखबरी! पिन {pin} पर स्टोर के लिए आपका आवेदन {id} स्वीकृत हो गया है। अगला कदम: पहले दो हफ्तों में KYC और फ्रैंचाइज़ी अनुबंध। आपका {weeks} हफ्ते का प्रशिक्षण हिंदी में होगा। दस्तावेज़ों के सत्यापन और अनुबंध पर हस्ताक्षर से पहले कोई शुल्क नहीं लिया जाएगा।",
+  approved: "प्रिय {name}, खुशखबरी! पिन {pin} पर स्टोर के लिए आपका आवेदन {id} स्वीकृत हो गया है। अगला कदम: पहले दो हफ्तों में KYC और फ्रैंचाइज़ी अनुबंध। आपका {weeks} हफ्ते का प्रशिक्षण हिंदी में होगा, और आपका स्टोर {ready} तक तैयार होने की राह पर है। दस्तावेज़ों के सत्यापन और अनुबंध पर हस्ताक्षर से पहले कोई शुल्क नहीं लिया जाएगा।",
   condSite: "प्रिय {name}, हमने {date} तक {city} में आपके लिए एक स्लॉट आरक्षित किया है। इसे पक्का करने के लिए कृपया पिन {pins} में कम से कम {min} वर्ग फुट की ग्राउंड फ्लोर जगह ढूंढकर हमें बताएं।",
   condDoc: "प्रिय {name}, हमने {date} तक पिन {pin} पर आपके लिए स्लॉट आरक्षित किया है। इसे पक्का करने के लिए कृपया यह भेजें: {task}। दस्तावेज़ों के सत्यापन और अनुबंध पर हस्ताक्षर से पहले कोई शुल्क नहीं लिया जाएगा।",
-  hold: "प्रिय {name}, आवेदन {id} पर निर्णय लेने से पहले हमें यह जानकारी चाहिए: {ask}। कृपया 14 दिनों के भीतर जवाब दें।",
+  hold: "प्रिय {name}, आवेदन के लिए धन्यवाद। आपके आवेदन {id} पर निर्णय के हम करीब हैं, बस पहले हमें आपसे एक चीज़ चाहिए: {ask}। कृपया इसे {by} तक भेज दें; मिलते ही हम आपको अपना निर्णय बताएँगे।",
   wait: "प्रिय {name}, आप {city} की प्रतीक्षा सूची में {q} नंबर पर हैं। उपलब्ध स्लॉट के लिए किसी अन्य आवेदक की रैंक अधिक थी। स्लॉट खुलते ही हम आपसे संपर्क करेंगे।",
   waitPin: " पिन {pins} में जगह मिलने पर आप पात्र बने रहेंगे।",
   declined: "प्रिय {name}, फिलहाल हम आवेदन {id} पर आगे नहीं बढ़ सकते: {reason}। स्थिति बदलने पर आप कभी भी दोबारा आवेदन कर सकते हैं।",
@@ -113,10 +113,10 @@ const HI: Pack = {
 };
 
 const KN: Pack = {
-  approved: "ಆತ್ಮೀಯ {name}, ಶುಭ ಸುದ್ದಿ! ಪಿನ್ {pin} ನಲ್ಲಿ ಮಳಿಗೆ ತೆರೆಯಲು ನಿಮ್ಮ ಅರ್ಜಿ {id} ಅನುಮೋದನೆಗೊಂಡಿದೆ. ಮುಂದಿನ ಹಂತ: ಮೊದಲ ಎರಡು ವಾರಗಳಲ್ಲಿ KYC ಮತ್ತು ಫ್ರಾಂಚೈಸಿ ಒಪ್ಪಂದ. ನಿಮ್ಮ {weeks} ವಾರಗಳ ತರಬೇತಿ ಕನ್ನಡದಲ್ಲಿ ನಡೆಯುತ್ತದೆ. ದಾಖಲೆ ಪರಿಶೀಲನೆ ಮತ್ತು ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಆಗುವವರೆಗೆ ಯಾವುದೇ ಶುಲ್ಕ ಪಡೆಯುವುದಿಲ್ಲ.",
+  approved: "ಆತ್ಮೀಯ {name}, ಶುಭ ಸುದ್ದಿ! ಪಿನ್ {pin} ನಲ್ಲಿ ಮಳಿಗೆ ತೆರೆಯಲು ನಿಮ್ಮ ಅರ್ಜಿ {id} ಅನುಮೋದನೆಗೊಂಡಿದೆ. ಮುಂದಿನ ಹಂತ: ಮೊದಲ ಎರಡು ವಾರಗಳಲ್ಲಿ KYC ಮತ್ತು ಫ್ರಾಂಚೈಸಿ ಒಪ್ಪಂದ. ನಿಮ್ಮ {weeks} ವಾರಗಳ ತರಬೇತಿ ಕನ್ನಡದಲ್ಲಿ ನಡೆಯುತ್ತದೆ, ಮತ್ತು ನಿಮ್ಮ ಮಳಿಗೆ {ready} ವೇಳೆಗೆ ಸಿದ್ಧವಾಗುವ ಹಾದಿಯಲ್ಲಿದೆ. ದಾಖಲೆ ಪರಿಶೀಲನೆ ಮತ್ತು ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಆಗುವವರೆಗೆ ಯಾವುದೇ ಶುಲ್ಕ ಪಡೆಯುವುದಿಲ್ಲ.",
   condSite: "ಆತ್ಮೀಯ {name}, {date} ವರೆಗೆ {city} ನಲ್ಲಿ ನಿಮಗಾಗಿ ಒಂದು ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ. ಅದನ್ನು ಖಚಿತಪಡಿಸಲು ಪಿನ್ {pins} ನಲ್ಲಿ ಕನಿಷ್ಠ {min} ಚದರ ಅಡಿಯ ನೆಲ ಮಹಡಿಯ ಜಾಗವನ್ನು ಹುಡುಕಿ ನಮಗೆ ತಿಳಿಸಿ.",
   condDoc: "ಆತ್ಮೀಯ {name}, {date} ವರೆಗೆ ಪಿನ್ {pin} ನಲ್ಲಿ ನಿಮಗಾಗಿ ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ. ಅದನ್ನು ಖಚಿತಪಡಿಸಲು ದಯವಿಟ್ಟು ಇದನ್ನು ಕಳುಹಿಸಿ: {task}. ದಾಖಲೆ ಪರಿಶೀಲನೆ ಮತ್ತು ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಆಗುವವರೆಗೆ ಯಾವುದೇ ಶುಲ್ಕ ಪಡೆಯುವುದಿಲ್ಲ.",
-  hold: "ಆತ್ಮೀಯ {name}, ಅರ್ಜಿ {id} ಕುರಿತು ನಿರ್ಧರಿಸುವ ಮೊದಲು ನಮಗೆ ಈ ಮಾಹಿತಿ ಬೇಕು: {ask}. ದಯವಿಟ್ಟು 14 ದಿನಗಳೊಳಗೆ ಉತ್ತರಿಸಿ.",
+  hold: "ಆತ್ಮೀಯ {name}, ಅರ್ಜಿ ಸಲ್ಲಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಅರ್ಜಿ {id} ಕುರಿತು ನಿರ್ಧಾರಕ್ಕೆ ಹತ್ತಿರವಿದ್ದೇವೆ; ಅದಕ್ಕೂ ಮೊದಲು ನಮಗೆ ಒಂದು ವಿಷಯ ಬೇಕು: {ask}. ದಯವಿಟ್ಟು {by} ಒಳಗೆ ಕಳುಹಿಸಿ; ಬಂದ ನಂತರ ನಿರ್ಧಾರವನ್ನು ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ.",
   wait: "ಆತ್ಮೀಯ {name}, {city} ಗಾಗಿ ಕಾಯುವ ಪಟ್ಟಿಯಲ್ಲಿ ನೀವು {q}ನೇ ಸ್ಥಾನದಲ್ಲಿದ್ದೀರಿ. ಲಭ್ಯವಿರುವ ಸ್ಲಾಟ್‌ಗೆ ಇನ್ನೊಬ್ಬ ಅರ್ಜಿದಾರರು ಹೆಚ್ಚಿನ ಶ್ರೇಣಿ ಪಡೆದಿದ್ದಾರೆ. ಸ್ಲಾಟ್ ತೆರೆದ ತಕ್ಷಣ ನಾವು ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತೇವೆ.",
   waitPin: " ಪಿನ್ {pins} ನಲ್ಲಿ ಜಾಗ ಸಿಕ್ಕರೆ ನೀವು ಅರ್ಹರಾಗಿಯೇ ಇರುತ್ತೀರಿ.",
   declined: "ಆತ್ಮೀಯ {name}, ಸದ್ಯಕ್ಕೆ ಅರ್ಜಿ {id} ಯೊಂದಿಗೆ ಮುಂದುವರಿಯಲು ಸಾಧ್ಯವಿಲ್ಲ: {reason}. ಪರಿಸ್ಥಿತಿ ಬದಲಾದಾಗ ನೀವು ಮತ್ತೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಬಹುದು.",
@@ -166,10 +166,12 @@ export function applicantMessage(d: Decision, opts: { lang: Lang | null; city: s
   const tier = d.capex?.tier ?? 2;
   const min = opts.policy.capex.minSize[String(tier) as "1"];
   const date = fmtDate(addDays(opts.today, opts.policy.windows.conditionalDays));
+  const by = fmtDate(addDays(opts.today, 14));
+  const ready = d.plan ? fmtDate(d.plan.readyDate) : "";
   const pins = d.freePinsOffered.slice(0, 3).join(", ");
   const name = d.name || (lang === "English" ? "applicant" : lang === "Hindi" ? "आवेदक" : "ಅರ್ಜಿದಾರರೇ");
   const fill = (s: string, extra: Record<string, string | number> = {}) =>
-    s.replace(/\{(\w+)\}/g, (_, k) => String(({ name, id: d.id, pin: d.allocatedPin ?? d.pin ?? "", city: opts.city ?? "", date, min, pins, q: d.queuePos ?? 1, weeks: d.plan?.training.weeks ?? 2, track: d.plan?.training.track ?? "", req: d.capex?.required ?? "", s: d.score?.total ?? "", ...extra } as Record<string, string | number>)[k] ?? ""));
+    s.replace(/\{(\w+)\}/g, (_, k) => String(({ name, id: d.id, pin: d.allocatedPin ?? d.pin ?? "", city: opts.city ?? "", date, by, ready, min, pins, q: d.queuePos ?? 1, weeks: d.plan?.training.weeks ?? 2, track: d.plan?.training.track ?? "", req: d.capex?.required ?? "", s: d.score?.total ?? "", ...extra } as Record<string, string | number>)[k] ?? ""));
   const pick = <K extends string>(table: Partial<Record<K, string>> & { default: string }, code?: string) => (code && (table as Record<string, string>)[code]) || table.default;
   let text: string;
   switch (d.status) {

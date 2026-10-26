@@ -1,7 +1,7 @@
-// Translates a finished answer into Hindi or Kannada. Post-checked: if any number or ID differs,
+// Translates a finished answer or applicant message into Hindi or a state language. Post-checked: if any number or ID differs,
 // the translation is discarded and the English answer stands.
 import { complete, llmConfigured } from "@/lib/llm";
-import { sameFacts, translatePrompt, TRANSLATE_SCHEMA } from "@/lib/chat/translate";
+import { isTranslateLang, sameFacts, translatePrompt, TRANSLATE_SCHEMA } from "@/lib/chat/translate";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ lines: null }, { status: 400 });
   }
-  const lang = body.lang === "Hindi" || body.lang === "Kannada" ? body.lang : null;
+  const lang = isTranslateLang(body.lang) ? body.lang : null;
   const lines = Array.isArray(body.lines) ? body.lines.filter((x): x is string => typeof x === "string").slice(0, 30).map((x) => x.slice(0, 400)) : [];
   if (!lang || !lines.length) return Response.json({ lines: null }, { status: 400 });
   const key = `${lang}|${lines.join("\n")}`;

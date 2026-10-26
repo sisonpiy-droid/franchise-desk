@@ -7,7 +7,9 @@ import { heldPercent } from "@/lib/engine/stability";
 import { applicantMessage } from "@/lib/engine/messages";
 import { fmtDate } from "@/lib/engine/plan";
 import type { Session, Step } from "@/lib/engine/session";
-import type { Decision } from "@/lib/engine/types";
+import type { Decision, Lang } from "@/lib/engine/types";
+import reference from "@/lib/engine/reference.json";
+import { LANGUAGES, stateLanguage, type TranslateLang } from "@/lib/chat/translate";
 import { Icon, StatusChip, STATUS_VAR } from "./icons";
 
 export function DecisionCard({
@@ -40,6 +42,24 @@ export function DecisionCard({
   const app = d ? step.dataset.applications.find((a) => a.key === d.key) : null;
   const terr = d ? step.result.territories.find((t) => t.key === d.territoryKey) : null;
   const msg = useMemo(() => (d && app ? applicantMessage(d, { lang: app.language, city: app.city ?? terr?.city ?? null, today, policy: step.policy }) : null), [d, app, terr, today, step.policy]);
+  // The same message in English, Hindi and the state's own language. English, Hindi and Kannada are written packs;
+  // other state languages are translated by the model and the server drops the result if any number or ID changed.
+  const stateName = app?.state ?? reference.cities.find((c) => c.city.toLowerCase() === (app?.city ?? terr?.city ?? "").toLowerCase())?.state ?? null;
+  const local = stateLanguage(stateName);
+  const [pick, setPick] = useState<{ key: string; lang: string } | null>(null);
+  const shownLang: string = pick && d && pick.key === d.key ? pick.lang : msg?.lang ?? "English";
+  const [tr, setTr] = useState<Record<string, string[] | null | "wait">>({});
+  const packText = useMemo(() => (d && app && (shownLang === "English" || shownLang === "Hindi" || shownLang === "Kannada") ? applicantMessage(d, { lang: shownLang as Lang, city: app.city ?? terr?.city ?? null, today, policy: step.policy }).text : null), [d, app, terr, today, step.policy, shownLang]);
+  const trKey = `${d?.key}|${shownLang}`;
+  const english = useMemo(() => (d && app ? applicantMessage(d, { lang: "English", city: app.city ?? terr?.city ?? null, today, policy: step.policy }).text : ""), [d, app, terr, today, step.policy]);
+  useEffect(() => {
+    if (packText !== null || !english || trKey in tr) return;
+    setTr((m) => ({ ...m, [trKey]: "wait" }));
+    fetch("/api/translate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ lines: [english], lang: shownLang }), signal: AbortSignal.timeout(10000) })
+      .then((x) => (x.ok ? x.json() : null))
+      .then((j) => setTr((m) => ({ ...m, [trKey]: j?.lines ?? null })))
+      .catch(() => setTr((m) => ({ ...m, [trKey]: null })));
+  }, [packText, english, trKey, tr, shownLang]);
   const audit = d ? session.log.filter((l) => ("key" in l.update && l.update.key === d.key) || (l.update.kind === "swap" && (l.update.challenger === d.key || l.update.displaced === d.key)) || l.update.kind === "policy" || l.update.kind === "days" || (l.update.kind === "territory" && l.update.key === d.territoryKey)) : [];
   const [copied, setCopied] = useState(false);
 
@@ -249,16 +269,29 @@ export function DecisionCard({
         )}
 
         {/* 6. Applicant message */}
-        {msg && (
-          <Section title={`Message to applicant · ${msg.lang}`}>
-            <p className={`whitespace-pre-wrap rounded-[var(--radius-m)] bg-surface-2 px-4 py-3 text-[14px] leading-relaxed ${msg.lang !== "English" ? "indic" : ""}`} lang={msg.lang === "Hindi" ? "hi" : msg.lang === "Kannada" ? "kn" : "en"}>
-              {msg.text}
+        {msg && (() => {
+          const t = packText ?? tr[trKey];
+          const text = typeof t === "string" ? t : Array.isArray(t) ? t.join(" ") : english;
+          const note = packText !== null ? null : t === "wait" || t === undefined ? "Translating…" : t === null ? "Translation unavailable right now (or it changed a number), showing English." : "Translated by AI; numbers and IDs checked.";
+          const langs: string[] = ["English", "Hindi", ...(local ? [local] : [])];
+          return (
+          <Section title={`Message to applicant · ${shownLang}`}>
+            <div className="mb-2 flex flex-wrap gap-1.5" role="tablist" aria-label="Message language">
+              {langs.map((l) => (
+                <button key={l} type="button" role="tab" aria-selected={shownLang === l} onClick={() => d && setPick({ key: d.key, lang: l })} className={`rounded-full border px-3 py-1 text-[12.5px] ${shownLang === l ? "border-neon bg-surface-2 font-semibold" : "border-line hover:bg-surface-2"}`}>
+                  {l}{l === local ? ` · ${stateName}` : ""}
+                </button>
+              ))}
+            </div>
+            <p className={`whitespace-pre-wrap rounded-[var(--radius-m)] bg-surface-2 px-4 py-3 text-[14px] leading-relaxed ${shownLang !== "English" && !(typeof t !== "string" && !Array.isArray(t) && packText === null) ? "indic" : ""}`} lang={shownLang === "English" ? "en" : shownLang === "Hindi" ? "hi" : shownLang === "Kannada" ? "kn" : (LANGUAGES[shownLang as TranslateLang]?.code ?? "en")}>
+              {text}
             </p>
+            {note && <p className="mt-1.5 text-[11.5px] text-muted">{note}</p>}
             <button
               type="button"
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(msg.text);
+                  await navigator.clipboard.writeText(text);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 1600);
                 } catch {
@@ -270,7 +303,8 @@ export function DecisionCard({
               {copied ? <Icon.Check size={14} /> : <Icon.Copy size={14} />} {copied ? "Copied" : "Copy message"}
             </button>
           </Section>
-        )}
+          );
+        })()}
 
         {/* 7. Audit trail */}
         <Section title="Audit trail">

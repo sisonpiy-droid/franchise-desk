@@ -68,6 +68,12 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
       }}
     >
       {map3d && <Diorama source={{ kind: "region" }} points={points} overlay={zones} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} reducedMotion={reduced} onFail={() => setMap3d(false)} autoRotate hint="Drag to rotate · scroll to zoom · click a city to see its requests" />}
+      <div className="pointer-events-none absolute inset-x-0 top-4 z-[5] hidden justify-center px-4 sm:flex">
+        <p className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-[#0d0d14cc] px-4 py-2 text-[14px] text-ink backdrop-blur" style={{ boxShadow: "0 0 30px #8f7cff22" }}>
+          <i className="inline-block size-2 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 10px var(--neon)" }} aria-hidden />
+          <span><b className="font-semibold">Your territories, live on the map.</b> <span className="text-ink-2">Click on any to see requests.</span></span>
+        </p>
+      </div>
       <PinLegend points={points} sample />
       {!map3d && <FlatIndia points={points} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} />}
       {over && <div className="pointer-events-none absolute inset-3 z-[4] grid place-items-center rounded-2xl border-2 border-dashed border-[#b4a6ff] bg-[#8f7cff14] text-[16px] font-semibold text-white">Drop the Excel file to open it</div>}
@@ -90,9 +96,9 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
           <label htmlFor="file" className="neon-btn inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[14px] font-bold">
             <Icon.Upload /> {loading ? "Reading the workbook…" : "Upload your data"}
           </label>
-          <button type="button" onClick={() => onSample()} disabled={loading} className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[13.5px] font-semibold text-ink-2 hover:bg-white/5 hover:text-ink disabled:opacity-60">
-            <Icon.Spark /> Try sample data
-          </button>
+          <a href="/sample/franchise-upload-format.xlsx" download="Franchise-Desk-upload-format.xlsx" className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-[14px] font-semibold text-ink hover:bg-white/5">
+            <Icon.Download /> Download the upload format
+          </a>
           <input
             id="file"
             type="file"
@@ -105,6 +111,9 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
             }}
           />
         </div>
+        <button type="button" onClick={() => onSample()} disabled={loading} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] text-muted hover:bg-white/5 hover:text-ink disabled:opacity-60">
+          <Icon.Spark size={13} /> Try sample data
+        </button>
       </div>
     </main>
   );

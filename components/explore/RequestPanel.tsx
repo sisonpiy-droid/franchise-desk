@@ -114,7 +114,7 @@ export function RequestPanel({ whatIf, category, result, decision, index, total,
             <StatusChip status={decision.status} />
           </div>
 
-          <div className="mt-3"><VerdictBanner decision={decision} change={cf} compact /></div>
+          <div className="mt-3"><VerdictBanner decision={decision} change={cf} compact result={result} /></div>
         </div>
 
         {c && (

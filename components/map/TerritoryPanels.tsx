@@ -146,7 +146,7 @@ export function LocationPanel({ whatIf, category, result, decision, index, total
           </div>
           <StatusChip status={decision.status} />
         </div>
-        <div className="px-4 pt-3"><VerdictBanner decision={decision} change={cf} compact /></div>
+        <div className="px-4 pt-3"><VerdictBanner decision={decision} change={cf} compact result={result} /></div>
         {c ? (
           <div className="px-4 pt-3">
             <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black">

@@ -100,7 +100,7 @@ export function DecisionCard({
       <div className="px-5 pb-28">
         {/* 1. Status and the one sentence */}
         <section className="pt-5">
-          <VerdictBanner decision={d} change={cf} />
+          <VerdictBanner decision={d} change={cf} result={step.result} />
           <div className="mt-3 flex flex-wrap gap-2 text-[12.5px]">
             {d.territoryId && <Tag icon={<Icon.Map size={13} />}>{d.territoryId} · {terr?.city}</Tag>}
             {(d.allocatedPin ?? d.pin) && <Tag icon={<Icon.Pin size={13} />}>pin {d.allocatedPin ?? d.pin}</Tag>}

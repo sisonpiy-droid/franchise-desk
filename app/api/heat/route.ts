@@ -1,7 +1,8 @@
 // Pincode heat route: asks the model for a relative demand index per pin code. Rate-limited, budget-capped and cached.
 // Only the pin code, city and tier are sent, never names or notes. If anything fails the browser falls back to tier averages.
 import { complete, llmConfigured } from "@/lib/llm";
-import { buildHeatPrompt, HEAT_SCHEMA, HEAT_SYSTEM, normaliseHeat, type HeatAsk, type HeatIndex } from "@/lib/heat/model";
+import { categoryOf } from "@/lib/engine/categories";
+import { buildHeatPrompt, HEAT_SCHEMA, heatSystemFor, normaliseHeat, type HeatAsk, type HeatIndex } from "@/lib/heat/model";
 
 export const dynamic = "force-dynamic";
 
@@ -35,12 +36,13 @@ export async function POST(req: Request) {
   }
   if (used >= DAILY_BUDGET) return Response.json({ pins: {}, reason: "daily budget reached" }, { status: 429 });
 
-  let body: { items?: unknown };
+  let body: { items?: unknown; category?: unknown };
   try {
     body = await req.json();
   } catch {
     return Response.json({ pins: {}, reason: "bad request" }, { status: 400 });
   }
+  const cat = categoryOf(body.category);
   const seen = new Set<string>();
   const items: HeatAsk[] = [];
   for (const x of Array.isArray(body.items) ? body.items : []) {
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
   const out: Record<string, HeatIndex> = {};
   const todo: HeatAsk[] = [];
   for (const i of items) {
-    const hit = cache.get(`${i.pin}|${i.city}|${i.tier}`);
+    const hit = cache.get(`${cat.id}|${i.pin}|${i.city}|${i.tier}`);
     if (hit) out[i.pin] = hit;
     else todo.push(i);
   }
@@ -65,14 +67,14 @@ export async function POST(req: Request) {
     inflight++;
     used++;
     try {
-      const raw = await complete(buildHeatPrompt(todo), HEAT_SCHEMA, HEAT_SYSTEM, 25_000);
+      const raw = await complete(buildHeatPrompt(todo, cat.id), HEAT_SCHEMA, heatSystemFor(cat.id), 25_000);
       const got = normaliseHeat(raw, todo.map((t) => t.pin));
       if (cache.size > 4000) cache.clear();
       for (const t of todo) {
         const g = got[t.pin];
         if (g) {
           out[t.pin] = g;
-          cache.set(`${t.pin}|${t.city}|${t.tier}`, g);
+          cache.set(`${cat.id}|${t.pin}|${t.city}|${t.tier}`, g);
         }
       }
     } catch {

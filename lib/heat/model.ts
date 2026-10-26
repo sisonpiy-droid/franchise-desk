@@ -2,6 +2,8 @@
 // The model only suggests a relative index and a short reason. The browser multiplies it into an illustrative order count;
 // no decision (approve, hold, decline) ever reads it. Only the pin code, city and tier are sent: no names, notes or scores.
 
+import { categoryOf, type CategoryId } from "../engine/categories";
+
 export const MIN_INDEX = 0.5;
 export const MAX_INDEX = 1.5;
 
@@ -36,8 +38,14 @@ export const HEAT_SYSTEM =
   "Use what you know about the area the pin code covers. If you do not recognise a pin code, return 1.0 and say so. " +
   "The reason is one short sentence of at most 14 words, naming the kind of area. Use the whole range: only about one pin in five should be above 1.25 or below 0.75, and most should sit between 0.85 and 1.2. Never invent statistics or numbers of people. This is a rough planning guess, not data.";
 
-export function buildHeatPrompt(items: HeatAsk[]): string {
-  return `Estimate the demand index for each pin code.\n${items.map((i) => `${i.pin} | ${i.city} | Tier ${i.tier}`).join("\n")}`;
+/** The base instructions plus what drives demand for the chosen kind of store. */
+export function heatSystemFor(category?: CategoryId): string {
+  const c = categoryOf(category);
+  return `${HEAT_SYSTEM} The store is a ${c.label.toLowerCase()}. What drives demand for it: ${c.drivers}. Judge each pin code for this kind of store, not for retail in general.`;
+}
+
+export function buildHeatPrompt(items: HeatAsk[], category?: CategoryId): string {
+  return `Estimate the demand index for each pin code, for a ${categoryOf(category).label.toLowerCase()}.\n${items.map((i) => `${i.pin} | ${i.city} | Tier ${i.tier}`).join("\n")}`;
 }
 
 const clean = (s: string) => s.replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);

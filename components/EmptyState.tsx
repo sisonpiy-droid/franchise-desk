@@ -18,7 +18,7 @@ const Diorama = dynamic(() => import("./map/Diorama"), {
   loading: () => <div className="grid h-full place-items-center text-[13px] text-muted">Building the 3D view of India…</div>,
 });
 
-export function EmptyState({ onFile, onSample, error, loading, category, onCategory }: { onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean; category: CategoryId; onCategory: (c: CategoryId) => void }) {
+export function EmptyState({ onHistory, onFile, onSample, error, loading, category, onCategory }: { onHistory?: () => void; onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean; category: CategoryId; onCategory: (c: CategoryId) => void }) {
   const [over, setOver] = useState(false);
   const hero = useRef<HTMLDivElement>(null);
   useWordsIn(hero, 0.15);
@@ -139,6 +139,7 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
         <button type="button" onClick={() => onSample()} disabled={loading} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] text-muted hover:bg-white/5 hover:text-ink disabled:opacity-60">
           <Icon.Spark size={13} /> Try sample data
         </button>
+        {onHistory && <button type="button" onClick={onHistory} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] text-muted hover:bg-white/5 hover:text-ink">Upload history</button>}
       </div>
     </main>
   );

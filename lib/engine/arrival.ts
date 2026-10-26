@@ -3,7 +3,15 @@
 // Ranking is: ready site, then score, then investment, then the earlier application. Arrival only breaks an exact tie.
 import type { Decision, RunResult, Status } from "./types";
 
+/**
+ * First-seen dates (ISO) by application key, set by the app from this browser's upload history just before a file is shown.
+ * When present, an application that was uploaded earlier counts as having arrived earlier, whatever its application number.
+ */
+let seenDates: Record<string, string> = {};
+export const setArrivalDates = (m: Record<string, string>) => { seenDates = m; };
+
 export interface Lane {
+  seen?: string; // ISO date this application was first uploaded
   key: string;
   id: string;
   name: string;
@@ -16,6 +24,8 @@ export interface Lane {
 }
 
 export interface Race {
+  /** True when applications in this territory were first uploaded on different days, so arrival is by date. */
+  byDate: boolean;
   lanes: Lane[];
   me: Lane;
   /** One plain sentence about this applicant's arrival against their rank. */
@@ -24,6 +34,7 @@ export interface Race {
   detail: string;
 }
 
+const day = (iso: string) => iso.slice(0, 10);
 const idNum = (id: string) => {
   const m = id.match(/(\d+)(?!.*\d)/);
   return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
@@ -44,9 +55,11 @@ export function arrivalRace(result: RunResult, d: Decision): Race | null {
   if (!d.territoryKey) return null;
   const group = result.decisions.filter((x) => x.territoryKey === d.territoryKey && x.status !== "WITHDRAWN");
   if (group.length < 2) return null;
-  const byArrival = [...group].sort((a, b) => idNum(a.id) - idNum(b.id));
+  const dateOf = (x: Decision) => (seenDates[x.key] ? day(seenDates[x.key]) : "");
+  const byArrival = [...group].sort((a, b) => (dateOf(a) < dateOf(b) ? -1 : dateOf(a) > dateOf(b) ? 1 : idNum(a.id) - idNum(b.id)));
+  const datesDiffer = new Set(group.map(dateOf).filter(Boolean)).size > 1;
   const byRank = [...group].sort(compare);
-  const lane = (x: Decision): Lane => ({ key: x.key, id: x.id, name: x.name, status: x.status, score: x.score?.total ?? null, ready: x.ready, invest: x.capex?.invest ?? null, arrival: byArrival.indexOf(x) + 1, rank: byRank.indexOf(x) + 1 });
+  const lane = (x: Decision): Lane => ({ seen: datesDiffer ? dateOf(x) : undefined, key: x.key, id: x.id, name: x.name, status: x.status, score: x.score?.total ?? null, ready: x.ready, invest: x.capex?.invest ?? null, arrival: byArrival.indexOf(x) + 1, rank: byRank.indexOf(x) + 1 });
   const lanes = byArrival.map(lane);
   const me = lanes.find((l) => l.key === d.key);
   if (!me) return null;
@@ -74,5 +87,5 @@ export function arrivalRace(result: RunResult, d: Decision): Race | null {
   }
   const tie = lanes.find((l) => l.key !== me.key && l.ready === me.ready && l.score === me.score && l.invest === me.invest);
   if (tie) detail += ` ${tie.id} ties on site, score and investment, so the earlier application (${(tie.arrival < me.arrival ? tie : me).id}) wins.`;
-  return { lanes, me, headline, detail };
+  return { byDate: datesDiffer, lanes, me, headline, detail };
 }

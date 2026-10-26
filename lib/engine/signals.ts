@@ -32,7 +32,7 @@ function find(text: string, re: RegExp): string | undefined {
 }
 
 const LOAN = /\b(bank )?loan|\bemi\b|sanction|mudra|financ(e|ing) from|borrow|लोन|ऋण|कर्ज|ಸಾಲ|ಲೋನ್/i;
-const INJECTION = /ignore (all |any |the |previous |prior )?(rules|instructions|policy|above)|approve me|disregard|system prompt|you are (an? )?(ai|assistant|model)|override|jailbreak|score me|mark (me|this) (as )?approved|मुझे (अप्रूव|मंजूर)|\bsystem\s*:|set (my |the )?score|give (me )?(100|full marks|top score)|\bapprove (this|it|my|me)\b|मंजूर कर|अप्रूव कर|नियम (भूल|अनदेखा|तोड़)|ಅನುಮೋದಿಸಿ|ನಿಯಮ.{0,10}(ಮರೆ|ನಿರ್ಲಕ್ಷ)/i;
+const INJECTION = /ignore (all |any |the |previous |prior )?(rules|instructions|policy|above)|approve me|disregard|system prompt|you are (an? )?(ai|assistant|model)|override|jailbreak|score me|mark (me|this) (as )?approved|मुझे (अप्रूव|मंजूर)|\bsystem\s*:|set (my |the )?score|give (me )?(100|full marks|top score)|\bapprove (this|it|my|me)\b|मंजूर कर|अप्रूव कर|नियम (भूल|अनदेखा|तोड़)|ಅನುಮೋದಿಸಿ|ನಿಯಮ.{0,10}(ಮರೆ|ನಿರ್ಲಕ್ಷ)|(ಹಿಂದಿನ|ಮೊದಲಿನ) ಸೂಚನೆ|निर्देश(ों)?.{0,12}(अनदेखा|भूल|नज़रअंदाज़|नजरअंदाज)|(पिछले|पहले के) निर्देश|स्वीकृत कर|स्वीकृत करें/i;
 const FOUND_SHOP = /(found|have|got|secured|identified|already (have|own|rent))( a| the| my)? (shop|space|site|unit|premises|place)|i have a shop|दुकान (मिल|है)|जगह मिल|ಅಂಗಡಿ (ಸಿಕ್ಕಿದೆ|ಇದೆ)|ಜಾಗ ಸಿಕ್ಕಿದೆ/i;
 const WEAK_OWNED = /family|joint|ancestral|father'?s|mother'?s|in-?laws?|brother'?s|disputed|papers? (pending|not ready)|not in my name|partition|पारिवारिक|पिता|ಕುಟುಂಬ|ತಂದೆ/i;
 const WEAK_RENTED = /verbal|no (written |rent )?agreement|oral|short lease|11[- ]month|month[- ]to[- ]month|informal|without agreement|lease (ends|expires)/i;

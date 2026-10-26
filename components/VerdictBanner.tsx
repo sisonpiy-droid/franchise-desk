@@ -133,14 +133,14 @@ export function ArrivalChart({ result, decision: d }: { result: RunResult; decis
               <path d={`M128 ${y1} C 190 ${y1}, 190 ${y2}, 252 ${y2}`} fill="none" stroke={me ? "var(--neon)" : c} strokeWidth={me ? 4 : 2} opacity={me ? 1 : 0.5} strokeLinecap="round" />
               <circle cx="128" cy={y1} r={me ? 5.5 : 4} fill={c} stroke={me ? "#fff" : "none"} strokeWidth="1.5" />
               <circle cx="252" cy={y2} r={me ? 5.5 : 4} fill={c} stroke={me ? "#fff" : "none"} strokeWidth="1.5" />
-              <text x="0" y={y1 + 4} fontSize="11.5" fontWeight={me ? 700 : 500} className={me ? "fill-[var(--ink)]" : "fill-[var(--ink-2)]"}>{l.arrival} · {l.id}</text>
+              <text x="0" y={y1 + 4} fontSize="11.5" fontWeight={me ? 700 : 500} className={me ? "fill-[var(--ink)]" : "fill-[var(--ink-2)]"}>{l.arrival} · {l.id}{l.seen ? ` · ${new Date(l.seen).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}</text>
               <text x={W} y={y2 + 4} textAnchor="end" fontSize="11.5" fontWeight={me ? 700 : 500} className={me ? "fill-[var(--ink)]" : "fill-[var(--ink-2)]"}>{l.rank} · {l.score !== null ? `score ${l.score}` : "no score yet"} · {VERDICT_SHORT[l.status]}</text>
             </g>
           );
         })}
       </svg>
       <p className="mt-2 text-[13px] leading-snug text-ink-2">{race.detail}</p>
-      <p className="mt-1.5 text-[11.5px] leading-snug text-muted">The file has no submission dates, so the application number is used as arrival order. The rules rank a ready site first, then score, then investment, then the earlier application.</p>
+      <p className="mt-1.5 text-[11.5px] leading-snug text-muted">{race.byDate ? "Arrival is the date each application was first uploaded on this browser (see Upload history); same-day applications go by application number." : "The file has no submission dates, so the application number is used as arrival order."} The rules rank a ready site first, then score, then investment, then the earlier application.</p>
     </section>
   );
 }

@@ -18,6 +18,9 @@ import { DecisionCard } from "./DecisionCard";
 import { AskDesk, type Turn } from "./AskDesk";
 import { StrategyView } from "./StrategyView";
 import { RubricPanel } from "./RubricPanel";
+import { HistoryPanel } from "./HistoryPanel";
+import { setArrivalDates } from "@/lib/engine/arrival";
+import { firstSeenFor, getUploadBytes, recordUpload } from "@/lib/history";
 import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
@@ -38,7 +41,7 @@ const todayIso = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-type PanelName = "policy" | "method" | "notes" | "selftest" | "tower" | "ledger" | null;
+type PanelName = "policy" | "method" | "notes" | "selftest" | "history" | "tower" | "ledger" | null;
 
 export default function Desk() {
   const [chat, setChat] = useState<ChatState | null>(null);
@@ -54,6 +57,7 @@ export default function Desk() {
   const [busy, setBusy] = useState(false);
   const [ai, setAi] = useState<"unknown" | "on" | "off">("unknown");
   const [panel, setPanel] = useState<PanelName>(null);
+  const [historyKey, setHistoryKey] = useState(0);
   const [terrFilter, setTerrFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<Status[]>([]);
   const [highlight, setHighlight] = useState<string[]>([]);
@@ -111,9 +115,35 @@ export default function Desk() {
     (buf: ArrayBuffer, name: string, source: "upload" | "sample") => {
       try {
         const ds = parseWorkbook(readWorkbook(new Uint8Array(buf)), name, source);
-        start(ds);
+        if (source === "upload") {
+          // save the upload with its date, then show it with each application's first-seen date as its arrival
+          recordUpload(name, buf.slice(0), ds).then((seen) => {
+            setArrivalDates(seen);
+            setHistoryKey((k) => k + 1);
+            start(ds);
+          });
+        } else {
+          setArrivalDates({});
+          start(ds);
+        }
       } catch (e) {
         setError(e instanceof ParseError ? e.message : "This file could not be read as an Excel workbook. Save it as .xlsx and upload it again.");
+      }
+    },
+    [start],
+  );
+
+  const openSaved = useCallback(
+    async (id: string, name: string) => {
+      const bytes = await getUploadBytes(id);
+      if (!bytes) { setError("That saved upload could not be read."); return; }
+      try {
+        const ds = parseWorkbook(readWorkbook(new Uint8Array(bytes)), name, "upload");
+        setArrivalDates(await firstSeenFor(ds, id.split("|")[0]));
+        setPanel(null);
+        start(ds);
+      } catch {
+        setError("That saved upload could not be read.");
       }
     },
     [start],
@@ -339,7 +369,7 @@ export default function Desk() {
       </header>
 
       {!result || !dataset || !steps ? (
-        <EmptyState category={category} onCategory={setCategory} onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
+        <EmptyState onHistory={() => setPanel("history")} category={category} onCategory={setCategory} onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
       ) : tab === "explore" ? (
         <Explore
           whatIf={whatIf}
@@ -437,9 +467,9 @@ export default function Desk() {
           />
         )}
       </Drawer>
-      <Drawer open={panel === "policy" || panel === "notes" || panel === "selftest"} title="Policy and checks" onClose={() => setPanel(null)}>
+      <Drawer open={panel === "policy" || panel === "notes" || panel === "selftest" || panel === "history"} title="Policy and checks" onClose={() => setPanel(null)}>
         <div className="mb-4 flex gap-1.5 rounded-full border border-line p-1" role="tablist" aria-label="Policy and checks">
-          {([["policy", "Policy"], ["notes", "Data notes"], ["selftest", "Self-test"]] as const).map(([k, l]) => (
+          {([["policy", "Policy"], ["notes", "Data notes"], ["selftest", "Self-test"], ["history", "Uploads"]] as const).map(([k, l]) => (
             <button key={k} type="button" role="tab" aria-selected={panel === k} onClick={() => setPanel(k)} className={`flex-1 rounded-full px-3 py-1.5 text-[13px] font-semibold ${panel === k ? "neon-btn" : "text-ink-2 hover:text-ink"}`}>{l}</button>
           ))}
         </div>
@@ -452,6 +482,7 @@ export default function Desk() {
           disabled={!chat}
         />
         )}
+        {panel === "history" && <HistoryPanel onOpen={openSaved} refreshKey={historyKey} />}
         {panel === "notes" && dataset && <DataNotesPanel dataset={dataset} log={chat?.session.log ?? []} />}
         {panel === "selftest" && step && <SelfTestPanel run={() => selfTest(step.dataset, step.policy, { today, pinned: {} })} />}
       </Drawer>
@@ -495,7 +526,7 @@ function WorldMap({ whatIf, category, result: fullResult, statusFilter, selected
   const [flat, setFlat] = useState(false);
   const [reduced, setReduced] = useState(false);
   useEffect(() => setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches), []);
-  const points = useMemo(() => territoryPoints(result).filter((p) => !statusFilter.length || (p.count ?? 0) > 0), [result, statusFilter]);
+  const points = useMemo(() => territoryPoints(result).filter((p) => !p.muted && (!statusFilter.length || (p.count ?? 0) > 0)), [result, statusFilter]);
   const list = useMemo(() => (openKey ? territoryRequests(result, openKey) : []), [result, openKey]);
   const requestDecision = request ? result.decisions.find((d) => d.key === request) ?? null : null;
   const overlay = useMemo(() => (openKey || requestDecision ? territoryOverlay(result, openKey && !openKey.startsWith("city:") ? openKey : requestDecision?.territoryKey ?? null, requestDecision) : null), [result, openKey, requestDecision]);

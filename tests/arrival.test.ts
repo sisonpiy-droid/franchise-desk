@@ -46,3 +46,27 @@ describe("arrival order against rank", () => {
     }
   });
 });
+
+import { setArrivalDates } from "@/lib/engine/arrival";
+
+describe("arrival by first-seen date", () => {
+  it("an application uploaded on an earlier day counts as arriving first, whatever its number", () => {
+    const r = results[0];
+    const d = r.decisions.find((x) => arrivalRace(r, x))!;
+    const race0 = arrivalRace(r, d)!;
+    const latest = race0.lanes[race0.lanes.length - 1];
+    const dates: Record<string, string> = {};
+    for (const l of race0.lanes) dates[l.key] = "2026-10-26T09:00:00.000Z";
+    dates[latest.key] = "2026-10-20T09:00:00.000Z"; // the highest-numbered application was uploaded days earlier
+    setArrivalDates(dates);
+    try {
+      const race = arrivalRace(r, d)!;
+      expect(race.byDate).toBe(true);
+      expect(race.lanes.find((l) => l.key === latest.key)!.arrival).toBe(1);
+      expect(race.lanes.find((l) => l.key === latest.key)!.seen).toBe("2026-10-20");
+    } finally {
+      setArrivalDates({});
+    }
+    expect(arrivalRace(r, d)!.byDate).toBe(false);
+  });
+});

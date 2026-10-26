@@ -9,6 +9,7 @@ import { centroid } from "@/lib/engine/geo";
 import { plainReason } from "@/lib/engine/plain";
 import type { Decision, RunResult } from "@/lib/engine/types";
 import { territoryPoints, type MapPoint } from "@/lib/map/terrain";
+import { UnassignedBanner } from "./UnassignedBanner";
 import { territoryOverlay } from "@/lib/map/pinAreas";
 import { loadIndia, loadKarnataka, spansIndia, territoryZones } from "@/lib/map/zones";
 import { territoryRequests } from "./map/TerritoryPanels";
@@ -67,6 +68,9 @@ export function Explore({ whatIf, category, result, onFullDecision, onSummary, o
   }, [request, territory]);
 
   const tPoints = useMemo(() => territoryPoints(result), [result]);
+  // pins for real territories only; requests outside every territory are listed in the banner instead of drawn as a place
+  const mapPoints = useMemo(() => tPoints.filter((p) => !p.muted), [tPoints]);
+  const unassigned = useMemo(() => result.decisions.filter((d) => !d.territoryKey && d.status !== "WITHDRAWN"), [result]);
   // a city clicked on the first page opens straight into its territory
   useEffect(() => {
     if (!openCity) return;
@@ -127,9 +131,9 @@ export function Explore({ whatIf, category, result, onFullDecision, onSummary, o
     <main className="relative isolate h-[calc(100dvh-53px)] w-full overflow-hidden bg-[#07070b]" aria-label="Explore territories and requests">
       {!territory || !bbox ? (
         flat ? (
-          <FlatIndia points={tPoints} onPick={open} />
+          <FlatIndia points={mapPoints} onPick={open} />
         ) : (
-          <Diorama key={wide ? "overview-india" : "overview"} source={{ kind: wide ? "india" : "region" }} points={tPoints} overlay={zones} onPick={open} reducedMotion={reduced} autoRotate onFail={() => setFlat(true)} hint="Drag to rotate · scroll to zoom · click a territory" />
+          <Diorama key={wide ? "overview-india" : "overview"} source={{ kind: wide ? "india" : "region" }} points={mapPoints} overlay={zones} onPick={open} reducedMotion={reduced} autoRotate onFail={() => setFlat(true)} hint="Drag to rotate · scroll to zoom · click a territory" />
         )
       ) : flat ? (
         <FlatIndia points={reqPoints} activeKey={request} onPick={setRequest} />
@@ -140,7 +144,8 @@ export function Explore({ whatIf, category, result, onFullDecision, onSummary, o
         </>
       )}
 
-      {!territory && <PinLegend points={tPoints} />}
+      {!territory && <PinLegend points={mapPoints} />}
+      {!territory && <UnassignedBanner decisions={unassigned} onOpen={onFullDecision} />}
       {!territory && <p className="pointer-events-none absolute bottom-3 left-3 z-[3] hidden max-w-[300px] sm:block rounded-md bg-black/45 px-2.5 py-1.5 text-[11.5px] text-white/75">Lines split {wide ? "India" : "Karnataka"} by nearest territory: a guide to each territory&apos;s area, not an official boundary.</p>}
 
       {territory && (

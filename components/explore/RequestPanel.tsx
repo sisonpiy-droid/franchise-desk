@@ -1,10 +1,11 @@
 "use client";
 // One request, start to finish: the verdict and its reason first, then the place (satellite view, coordinates,
 // pin area), its catchment against our stores, who else wants this territory, and what happens next.
-import { centroid } from "@/lib/engine/geo";
+import { centroid, haversineKm } from "@/lib/engine/geo";
 import reference from "@/lib/engine/reference.json";
 import type { Decision, RunResult, Status } from "@/lib/engine/types";
 import { pinCells, areaKm2, catchmentCoverage, SERVICE_KM } from "@/lib/map/pinAreas";
+import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
 import { StatusChip, STATUS_LABEL } from "../icons";
 
 export const STATUS_HEX: Record<Status, string> = { APPROVED: "#34d399", CONDITIONAL: "#c3f25c", WAITLISTED: "#9aa3b2", ON_HOLD: "#f5a524", DECLINED: "#f87171", WITHDRAWN: "#8b97a6" };
@@ -34,7 +35,41 @@ export function storeLocations(result: RunResult): { id: string; pin: string; la
   return out;
 }
 
-export function RequestPanel({ result, decision, index, total, onPrev, onNext, onClose, onFullDecision }: { result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onClose: () => void; onFullDecision: () => void }) {
+const NEAR_KM = 10;
+
+/** Our existing stores close to a point, nearest first: how crowded the area already is. */
+export function NearbyStores({ result, at }: { result: RunResult; at: { lat: number; lon: number } }) {
+  const near = storeLocations(result)
+    .map((st) => ({ ...st, km: haversineKm(at, st) }))
+    .filter((st) => st.km <= NEAR_KM)
+    .sort((a, b) => a.km - b.km);
+  const year = (id: string) => reference.stores.find((x) => x.id === id)?.year;
+  return (
+    <div className="mx-4 mt-3 rounded-xl border border-white/10 p-3" data-testid="nearby-stores">
+      <div className="flex items-baseline justify-between">
+        <p className="text-[12.5px] font-semibold text-ink">Our stores within {NEAR_KM} km</p>
+        <p className="num text-[12px] text-muted">{near.length}</p>
+      </div>
+      {near.length === 0 ? (
+        <p className="mt-1.5 text-[12.5px] text-ink-2">None. This would be our first store in the area.</p>
+      ) : (
+        <ul className="mt-1.5 grid gap-1 text-[12.5px]">
+          {near.slice(0, 6).map((st) => (
+            <li key={st.id} className="flex items-center gap-2">
+              <i className="size-2 shrink-0 rounded-full" style={{ background: st.km <= SERVICE_KM ? "#f87171" : "#f5ecd8" }} />
+              <span className="min-w-0 flex-1 truncate text-ink">{st.id} · {cityOf(st.pin) ?? st.pin}{year(st.id) ? ` · open since ${year(st.id)}` : ""}</span>
+              <span className="num text-muted">{st.km.toFixed(1)} km</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {near.length > 6 && <p className="mt-1 text-[11.5px] text-muted">and {near.length - 6} more</p>}
+      <p className="mt-1.5 text-[11px] text-muted">Red: inside the {SERVICE_KM} km catchment of this pin. Only our own stores are known; the file has no rival store list.</p>
+    </div>
+  );
+}
+
+export function RequestPanel({ category, result, decision, index, total, onPrev, onNext, onClose, onFullDecision }: { category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onClose: () => void; onFullDecision: () => void }) {
   const pin = decision.allocatedPin ?? decision.pin;
   const c = centroid(pin);
   const q = c ? `${c.lat.toFixed(5)},${c.lon.toFixed(5)}` : "";
@@ -125,8 +160,10 @@ export function RequestPanel({ result, decision, index, total, onPrev, onNext, o
           </div>
         )}
 
+        {c && <NearbyStores result={result} at={c} />}
+
         <div className="mx-4 mt-3 grid grid-cols-2 gap-2 text-[12.5px]">
-          <Fact label="Footfall" value="Not in the file" note="add a footfall column to show it" />
+          <Fact label="Est. footfall" value={decision.plan ? `≈ ${footfallPerDay(decision.plan.payback.revenue, category).toLocaleString("en-IN")} / day` : "Not estimated yet"} note={decision.plan ? `estimated sales ÷ ₹${presetOf(category).ticketRs} typical bill. An assumption, not counted` : "needs an approved plan to estimate"} />
           <Fact label="Competitor brands" value="Not in the file" note="no rival store list in the data" />
         </div>
 

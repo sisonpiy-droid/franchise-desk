@@ -11,6 +11,7 @@ import { territoryPoints, type MapPoint } from "@/lib/map/terrain";
 import { territoryOverlay } from "@/lib/map/pinAreas";
 import { loadIndia, loadKarnataka, spansIndia, territoryZones } from "@/lib/map/zones";
 import { territoryRequests } from "./map/TerritoryPanels";
+import type { CategoryId } from "@/lib/engine/categories";
 import { RequestPanel, STATUS_HEX, storeLocations } from "./explore/RequestPanel";
 import { PinLegend } from "./map/PinLegend";
 import { StatusChip } from "./icons";
@@ -41,7 +42,7 @@ function territoryBbox(points: MapPoint[]): [number, number, number, number] {
   return [w, s, e, n];
 }
 
-export function Explore({ result, onFullDecision, onSummary, openCity, onOpened }: { result: RunResult; onFullDecision: (key: string) => void; onSummary: () => void; openCity?: string | null; onOpened?: () => void }) {
+export function Explore({ category, result, onFullDecision, onSummary, openCity, onOpened }: { category?: CategoryId; result: RunResult; onFullDecision: (key: string) => void; onSummary: () => void; openCity?: string | null; onOpened?: () => void }) {
   const [territory, setTerritory] = useState<string | null>(null);
   const [request, setRequest] = useState<string | null>(null);
   const [reduced, setReduced] = useState(false);
@@ -174,6 +175,7 @@ export function Explore({ result, onFullDecision, onSummary, openCity, onOpened 
 
       {decision && (
         <RequestPanel
+          category={category}
           result={result}
           decision={decision}
           index={Math.max(0, list.findIndex((d) => d.key === decision.key))}

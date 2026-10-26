@@ -340,6 +340,7 @@ export default function Desk() {
         <EmptyState category={category} onCategory={setCategory} onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
       ) : tab === "explore" ? (
         <Explore
+          category={category}
           result={result}
           openCity={openCity}
           onOpened={() => setOpenCity(null)}
@@ -371,7 +372,7 @@ export default function Desk() {
             {briefOpen ? (
               <BriefView result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
             ) : (
-                  <WorldMap result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
+                  <WorldMap category={category} result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
             )}
           </section>
           {notice && (
@@ -456,7 +457,7 @@ const TerrainMap = dynamic(() => import("./map/TerrainMap"), {
 });
 
 /** The world behind the HUD. Optional by design: any failure leaves a calm backdrop and the roster carries everything. */
-function WorldMap({ result: fullResult, statusFilter, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { result: RunResult; statusFilter: Status[]; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
+function WorldMap({ category, result: fullResult, statusFilter, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { category: CategoryId; result: RunResult; statusFilter: Status[]; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
   // Status chips filter the map too: only requests with a chosen status are counted, listed and drawn,
   // and a territory with none of them drops off the map.
   const result = useMemo<RunResult>(() => (statusFilter.length ? { ...fullResult, decisions: fullResult.decisions.filter((d) => statusFilter.includes(d.status)) } : fullResult), [fullResult, statusFilter]);
@@ -556,6 +557,7 @@ function WorldMap({ result: fullResult, statusFilter, selected, highlight, onSel
       {(flat || mode === "overview") && !openKey && <PinLegend points={points} corner="right" />}
       {requestDecision ? (
         <LocationPanel
+          category={category}
           result={result}
           decision={requestDecision}
           index={Math.max(0, list.findIndex((d) => d.key === requestDecision.key))}

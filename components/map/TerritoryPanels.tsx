@@ -4,6 +4,8 @@ import { centroid } from "@/lib/engine/geo";
 import reference from "@/lib/engine/reference.json";
 import type { Decision, RunResult } from "@/lib/engine/types";
 import { StatusChip, STATUS_LABEL } from "../icons";
+import { NearbyStores } from "../explore/RequestPanel";
+import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
 import { pinCells, areaKm2, SERVICE_KM } from "@/lib/map/pinAreas";
 
 const SHELL = "absolute inset-x-2 bottom-2 z-[4] flex max-h-[52%] flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0d0d14]/95 shadow-2xl backdrop-blur lg:inset-x-auto lg:bottom-auto lg:right-3 lg:top-3 lg:max-h-[calc(100%-120px)] lg:w-[360px]";
@@ -103,7 +105,7 @@ export function MapLegend() {
   );
 }
 
-export function LocationPanel({ result, decision, index, total, onPrev, onNext, onBack, onViewDecision }: { result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onBack: () => void; onViewDecision: () => void }) {
+export function LocationPanel({ category, result, decision, index, total, onPrev, onNext, onBack, onViewDecision }: { category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onBack: () => void; onViewDecision: () => void }) {
   const pin = decision.allocatedPin ?? decision.pin;
   const c = centroid(pin);
   const city = pin ? cityOfPin(pin) : undefined;
@@ -180,6 +182,11 @@ export function LocationPanel({ result, decision, index, total, onPrev, onNext, 
               </dd>
             </>
           )}
+          <dt className="text-muted">Est. footfall</dt>
+          <dd className="num text-ink">
+            {decision.plan ? `≈ ${footfallPerDay(decision.plan.payback.revenue, category).toLocaleString("en-IN")} / day` : "Not estimated yet"}
+            {decision.plan && <span className="text-muted"> (₹{presetOf(category).ticketRs} typical bill, assumed)</span>}
+          </dd>
           {free !== null && (
             <>
               <dt className="text-muted">Free pins</dt>
@@ -189,7 +196,8 @@ export function LocationPanel({ result, decision, index, total, onPrev, onNext, 
             </>
           )}
         </dl>
-        <div className="border-t border-white/10 px-4 py-3">
+        {c && <NearbyStores result={result} at={c} />}
+        <div className="mt-3 border-t border-white/10 px-4 py-3">
           <MapLegend />
         </div>
         {rivals.length > 0 && (

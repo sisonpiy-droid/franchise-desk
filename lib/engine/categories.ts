@@ -14,6 +14,8 @@ export interface CategoryPreset {
   /** Wording used in explanations ("a pharmacy", "this store"). */
   noun: string;
   blurb: string;
+  /** Typical bill in rupees, only used to turn estimated sales into an estimated footfall. Illustrative. */
+  ticketRs: number;
   capex?: Partial<{ fitoutPerSqft: ByTier; stockPerSqft: ByTier; franchiseFeeLakh: ByTier; idealSize: ByTier; minSize: ByTier }>;
   payback?: Partial<{ revenuePerSqftMonth: ByTier; grossMarginPct: number; royaltyPct: number; otherOpexPct: number; staffCostLakhMonth: ByTier }>;
   supply?: Partial<{ safetyStockDaysPerLeadDay: number; minSafetyStockDays: number }>;
@@ -25,9 +27,10 @@ export interface CategoryPreset {
 const t = (a: number, b: number, c: number): ByTier => ({ "1": a, "2": b, "3": c });
 
 export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
-  general: { id: "general", label: "General store", noun: "retail store", blurb: "Everyday goods and kirana-style shops. The brand's original defaults." },
+  general: { id: "general", ticketRs: 350, label: "General store", noun: "retail store", blurb: "Everyday goods and kirana-style shops. The brand's original defaults." },
   qsr: {
     id: "qsr",
+    ticketRs: 300,
     label: "Quick-service restaurant (QSR)",
     noun: "restaurant",
     blurb: "Fast food and cafes: costly kitchen fit-out, little stock, small shops, high sales per sq ft, perishables.",
@@ -39,6 +42,7 @@ export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
   },
   pharmacy: {
     id: "pharmacy",
+    ticketRs: 450,
     label: "Pharmacy",
     noun: "pharmacy",
     blurb: "Medicines and wellness: heavy opening stock, thin margins, small ground-floor shops, licensing to complete.",
@@ -50,6 +54,7 @@ export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
   },
   apparel: {
     id: "apparel",
+    ticketRs: 1800,
     label: "Apparel and footwear",
     noun: "apparel store",
     blurb: "Fashion retail: large shops, stylish fit-out, bulky seasonal stock, slower to build.",
@@ -61,6 +66,7 @@ export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
   },
   electronics: {
     id: "electronics",
+    ticketRs: 9000,
     label: "Electronics and mobile",
     noun: "electronics store",
     blurb: "Phones and gadgets: costly stock, thin margins, mid-size shops, fast-moving range.",
@@ -72,6 +78,7 @@ export const CATEGORY_PRESETS: Record<CategoryId, CategoryPreset> = {
   },
   eyewear: {
     id: "eyewear",
+    ticketRs: 3500,
     label: "Eyewear and optical",
     noun: "optical store",
     blurb: "Eye tests and frames: premium fit-out, high margins, small shops, optometry basics to learn.",
@@ -102,4 +109,10 @@ export function policyFor(id: unknown): Policy {
   if (preset.trainingWeeks) p.training.tracks.forEach((track, i) => (track.weeks = preset.trainingWeeks![i] ?? track.weeks));
   p.brand = { ...p.brand, category: preset.noun };
   return p;
+}
+
+/** Customers a day a store would need to hit its estimated monthly sales (lakh rupees) at this type's typical bill. */
+export function footfallPerDay(monthlySalesLakh: number, id: CategoryId | undefined): number {
+  const ticket = presetOf(id).ticketRs;
+  return Math.round((monthlySalesLakh * 1e5) / ticket / 30 / 10) * 10;
 }

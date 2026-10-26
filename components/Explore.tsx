@@ -9,7 +9,7 @@ import { centroid } from "@/lib/engine/geo";
 import type { RunResult } from "@/lib/engine/types";
 import { territoryPoints, type MapPoint } from "@/lib/map/terrain";
 import { territoryOverlay } from "@/lib/map/pinAreas";
-import { loadKarnataka, territoryZones } from "@/lib/map/zones";
+import { loadIndia, loadKarnataka, spansIndia, territoryZones } from "@/lib/map/zones";
 import { territoryRequests } from "./map/TerritoryPanels";
 import { RequestPanel, STATUS_HEX, storeLocations } from "./explore/RequestPanel";
 import { PinLegend } from "./map/PinLegend";
@@ -48,9 +48,11 @@ export function Explore({ result, onFullDecision, onSummary, openCity, onOpened 
   const [flat, setFlat] = useState(false);
   const [ready, setReady] = useState(false);
   const [ka, setKa] = useState<GeoJSON.Feature | null>(null);
+  const [indiaFeature, setIndiaFeature] = useState<GeoJSON.Feature | null>(null);
   useEffect(() => setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches), []);
   useEffect(() => {
     loadKarnataka().then(setKa);
+    loadIndia().then(setIndiaFeature);
   }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -74,7 +76,8 @@ export function Explore({ result, onFullDecision, onSummary, openCity, onOpened 
     onOpened?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCity]);
-  const zones = useMemo(() => territoryZones(tPoints, ka), [tPoints, ka]);
+  const zones = useMemo(() => territoryZones(tPoints, ka, indiaFeature), [tPoints, ka, indiaFeature]);
+  const wide = useMemo(() => spansIndia(tPoints), [tPoints]);
   const list = useMemo(() => (territory ? territoryRequests(result, territory) : []), [result, territory]);
   const t = territory ? result.territories.find((x) => x.key === territory) : null;
   const title = t ? `${t.id} ${t.city ?? ""}` : territory?.slice(5) ?? "";
@@ -136,7 +139,7 @@ export function Explore({ result, onFullDecision, onSummary, openCity, onOpened 
       )}
 
       {!territory && <PinLegend points={tPoints} />}
-      {!territory && <p className="pointer-events-none absolute bottom-3 left-3 z-[3] hidden max-w-[300px] sm:block rounded-md bg-black/45 px-2.5 py-1.5 text-[11.5px] text-white/75">Lines split Karnataka by nearest territory: a guide to each territory&apos;s area, not an official boundary.</p>}
+      {!territory && <p className="pointer-events-none absolute bottom-3 left-3 z-[3] hidden max-w-[300px] sm:block rounded-md bg-black/45 px-2.5 py-1.5 text-[11.5px] text-white/75">Lines split {wide ? "India" : "Karnataka"} by nearest territory: a guide to each territory&apos;s area, not an official boundary.</p>}
 
       {territory && (
         <div className="absolute left-3 top-3 z-[5] flex items-center gap-2">

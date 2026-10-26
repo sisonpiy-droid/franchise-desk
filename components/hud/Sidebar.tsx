@@ -19,6 +19,7 @@ export function Sidebar({
   onPickTerritory,
   onSelect,
   onLedger,
+  onBrief,
 }: {
   result: RunResult;
   selected: string | null;
@@ -29,8 +30,10 @@ export function Sidebar({
   onPickTerritory: (k: string | null) => void;
   onSelect: (k: string) => void;
   onLedger: () => void;
+  /** Called with true when the Executive brief tab is chosen, false for the others. */
+  onBrief?: (open: boolean) => void;
 }) {
-  const [tab, setTab] = useState<"apps" | "territories">("apps");
+  const [tab, setTab] = useState<"apps" | "territories" | "brief">("apps");
   const [q, setQ] = useState("");
   const list = useRef<HTMLUListElement>(null);
   const decisions = result.decisions;
@@ -56,17 +59,17 @@ export function Sidebar({
   return (
     <aside className="flex h-full min-h-0 flex-col border-line bg-[#0a0a10] lg:border-r" aria-label="Applications and territories">
       <div className="flex items-center gap-1 border-b border-line px-3 pt-2" role="tablist">
-        {([["apps", `Applications`, decisions.length], ["territories", `Territories`, result.territories.length]] as const).map(([k, label, n]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`-mb-px border-b-2 px-2.5 py-2 text-[13px] font-medium transition-colors ${tab === k ? "border-neon text-ink" : "border-transparent text-muted hover:text-ink"}`}>
-            {label} <span className="num ml-0.5 text-muted">{n}</span>
+        {([["apps", `Applications`, decisions.length], ["territories", `Territories`, result.territories.length], ["brief", `Executive brief`, null]] as const).map(([k, label, n]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => { setTab(k); onBrief?.(k === "brief"); }} className={`-mb-px whitespace-nowrap border-b-2 px-2 py-2 text-[13px] font-medium transition-colors ${tab === k ? "border-neon text-ink" : "border-transparent text-muted hover:text-ink"}`}>
+            {label}{n !== null && <span className="num ml-0.5 text-muted"> {n}</span>}
           </button>
         ))}
         <button type="button" onClick={onLedger} className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12.5px] text-ink-2 hover:bg-surface-2 hover:text-ink" title="Every application in one table">
-          <Icon.Table size={14} /> Ledger
+          <Icon.Table size={14} /> <span className="sr-only">Ledger</span>
         </button>
       </div>
 
-      {tab === "apps" ? (
+      {tab !== "territories" ? (
         <>
           <div className="space-y-2 px-3 pt-3">
             <label className="relative block">

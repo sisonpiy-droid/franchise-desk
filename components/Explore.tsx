@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { centroid } from "@/lib/engine/geo";
+import { plainReason } from "@/lib/engine/plain";
 import type { Decision, RunResult } from "@/lib/engine/types";
 import { territoryPoints, type MapPoint } from "@/lib/map/terrain";
 import { territoryOverlay } from "@/lib/map/pinAreas";
@@ -163,7 +164,7 @@ export function Explore({ whatIf, category, result, onFullDecision, onSummary, o
                   <i className="size-2.5 shrink-0 rounded-full" style={{ background: STATUS_HEX[d.status], boxShadow: `0 0 8px ${STATUS_HEX[d.status]}` }} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-medium text-ink">{d.name || d.id}</span>
-                    <span className="block truncate text-[12px] text-muted">{d.why}</span>
+                    <span className="block truncate text-[12px] text-muted">{plainReason(d)}</span>
                   </span>
                   <StatusChip status={d.status} />
                 </button>

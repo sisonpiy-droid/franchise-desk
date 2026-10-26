@@ -1,4 +1,5 @@
 "use client";
+import { plainReason } from "@/lib/engine/plain";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { compareIds } from "@/lib/engine/decide";
@@ -150,7 +151,7 @@ export function ResultsTable({
                   <td className="px-3 py-2.5">
                     <StatusChip status={d.status} size="sm" />
                   </td>
-                  <td className="px-3 py-2.5 leading-snug">{d.why.replace(/^[^:]+:\s*/, "")}</td>
+                  <td className="px-3 py-2.5 leading-snug">{plainReason(d)}</td>
                   <td className="px-3 py-2.5 leading-snug text-ink-2">{d.nextStep}</td>
                   <td className="px-3 py-2.5 text-ink-2">{d.owner}</td>
                 </tr>
@@ -171,7 +172,7 @@ export function ResultsTable({
                 <span className="truncate text-[13px] text-ink-2">{d.name}</span>
                 <span className="ml-auto"><StatusChip status={d.status} size="sm" /></span>
               </div>
-              <p className="mt-1.5 text-[13.5px] leading-snug">{d.why.replace(/^[^:]+:\s*/, "")}</p>
+              <p className="mt-1.5 text-[13.5px] leading-snug">{plainReason(d)}</p>
               <p className="mt-1 text-[12.5px] text-muted leading-snug">
                 <span className="font-medium text-ink-2">{d.owner}:</span> {d.nextStep}
               </p>

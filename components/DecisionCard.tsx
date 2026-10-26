@@ -11,6 +11,7 @@ import type { Decision, Lang } from "@/lib/engine/types";
 import reference from "@/lib/engine/reference.json";
 import { LANGUAGES, stateLanguage, type TranslateLang } from "@/lib/chat/translate";
 import { Icon, StatusChip, STATUS_VAR } from "./icons";
+import { VerdictBanner } from "./VerdictBanner";
 
 export function DecisionCard({
   decision: d,
@@ -99,9 +100,7 @@ export function DecisionCard({
       <div className="px-5 pb-28">
         {/* 1. Status and the one sentence */}
         <section className="pt-5">
-          <p className="serif text-[22px] leading-snug">
-            <span style={{ color: STATUS_VAR[d.status] }}>{head}:</span> {rest.join(": ")}
-          </p>
+          <VerdictBanner decision={d} change={cf} />
           <div className="mt-3 flex flex-wrap gap-2 text-[12.5px]">
             {d.territoryId && <Tag icon={<Icon.Map size={13} />}>{d.territoryId} · {terr?.city}</Tag>}
             {(d.allocatedPin ?? d.pin) && <Tag icon={<Icon.Pin size={13} />}>pin {d.allocatedPin ?? d.pin}</Tag>}
@@ -109,17 +108,14 @@ export function DecisionCard({
             {d.promoted && <Tag icon={<Icon.Spark size={13} />}>promoted from waitlist</Tag>}
             {d.flags.some((f) => f.code === "CLAIM_UNVERIFIED") && <Tag icon={<Icon.Clock size={13} />}>pending verification</Tag>}
           </div>
-          <div className="mt-4 rounded-[var(--radius-m)] bg-surface-2 px-4 py-3">
-            <div className="text-[12px] font-medium text-muted">Next step · {d.owner}</div>
-            <div className="mt-0.5 text-[15px] font-medium leading-snug">{d.nextStep}</div>
-            {d.asks.length > 1 && (
-              <ul className="mt-2 space-y-1 text-[13px] text-ink-2">
-                {d.asks.map((a, i) => (
-                  <li key={i} className="flex gap-2"><span className="text-muted">{a.from}:</span> {a.what}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {d.asks.length > 1 && (
+            <ul className="mt-3 space-y-1 rounded-[var(--radius-m)] bg-surface-2 px-4 py-3 text-[13px] text-ink-2">
+              <li className="text-[12px] font-medium text-muted">Everything we are waiting for</li>
+              {d.asks.map((a, i) => (
+                <li key={i} className="flex gap-2"><span className="text-muted">{a.from}:</span> {a.what}</li>
+              ))}
+            </ul>
+          )}
           {d.contested && displaced && (
             <div className="mt-4 rounded-[var(--radius-m)] border-2 border-dashed px-4 py-3" style={{ borderColor: "var(--neon)" }}>
               <div className="flex items-center gap-2 text-[14px] font-semibold"><Icon.Swap /> Swap recommendation</div>
@@ -132,6 +128,7 @@ export function DecisionCard({
             </div>
           )}
           {d.handling && <p className="mt-3 text-[13px] text-ink-2">{d.handling}</p>}
+          <p className="mt-4 text-[12px] leading-snug text-muted"><span className="font-medium">Full rule text:</span> {head}: {rest.join(": ")}</p>
         </section>
 
         {/* 2. Evidence */}

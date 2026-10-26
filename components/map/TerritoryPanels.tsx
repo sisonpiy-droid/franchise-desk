@@ -4,6 +4,7 @@ import { centroid } from "@/lib/engine/geo";
 import reference from "@/lib/engine/reference.json";
 import type { Decision, RunResult } from "@/lib/engine/types";
 import { StatusChip, STATUS_LABEL } from "../icons";
+import { VerdictBanner } from "../VerdictBanner";
 import { NearbyStores } from "../explore/RequestPanel";
 import { useMemo } from "react";
 import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
@@ -145,6 +146,7 @@ export function LocationPanel({ whatIf, category, result, decision, index, total
           </div>
           <StatusChip status={decision.status} />
         </div>
+        <div className="px-4 pt-3"><VerdictBanner decision={decision} change={cf} compact /></div>
         {c ? (
           <div className="px-4 pt-3">
             <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black">
@@ -200,12 +202,6 @@ export function LocationPanel({ whatIf, category, result, decision, index, total
           )}
         </dl>
         {c && <NearbyStores result={result} at={c} />}
-        {whatIf && cf && (
-          <div className="mx-4 mt-3 rounded-xl border border-white/10 p-3">
-            <p className="text-[12.5px] font-semibold text-ink">What would change this decision</p>
-            <p className="mt-1 text-[13px] leading-snug text-ink-2">{cf}</p>
-          </div>
-        )}
 
         <div className="mt-3 border-t border-white/10 px-4 py-3">
           <MapLegend />

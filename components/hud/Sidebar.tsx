@@ -1,4 +1,5 @@
 "use client";
+import { plainReason } from "@/lib/engine/plain";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { compareIds } from "@/lib/engine/decide";
@@ -171,7 +172,7 @@ function AppRow({ d, selected, highlighted, onSelect }: { d: Decision; selected:
           {d.score && <span className="num text-[12px] text-muted" title="Score out of 100">{d.score.total}</span>}
           <StatusChip status={d.status} size="sm" />
         </div>
-        <p className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-ink-2">{d.why.replace(/^[^:]+:\s*/, "")}</p>
+        <p className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-ink-2">{plainReason(d)}</p>
         <p className="mt-0.5 truncate text-[11.5px] text-muted" title={d.nextStep}>
           <span className="text-ink-2">{d.owner}</span> · {d.nextStep}
         </p>

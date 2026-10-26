@@ -17,6 +17,7 @@ import { ResultsTable } from "./ResultsTable";
 import { DecisionCard } from "./DecisionCard";
 import { AskDesk, type Turn } from "./AskDesk";
 import { StrategyView } from "./StrategyView";
+import { RubricPanel } from "./RubricPanel";
 import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
@@ -320,7 +321,7 @@ export default function Desk() {
             {result && tab === "summary" && (
               <>
                 <HeaderButton onClick={() => setPanel("policy")} icon={<Icon.Sliders />} label="Policy" />
-                <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it decides" />
+                <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it is calculated" />
                 <HeaderButton onClick={() => setPanel("notes")} icon={<Icon.Notes />} label="Data notes" />
                 <HeaderButton onClick={() => setPanel("selftest")} icon={<Icon.Shield />} label="Self-test" />
                 <HeaderButton
@@ -334,7 +335,7 @@ export default function Desk() {
                 <HeaderButton onClick={() => { setChat(null); setTurns([]); }} icon={<Icon.Upload />} label="New file" />
               </>
             )}
-            {!result && <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it decides" />}
+            {!result && <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it is calculated" />}
           </nav>
         </div>
       </header>
@@ -427,8 +428,12 @@ export default function Desk() {
           disabled={!chat}
         />
       </Drawer>
-      <Drawer open={panel === "method"} title="How it decides" onClose={() => setPanel(null)}>
-        <MethodPanel policy={policy} />
+      <Drawer open={panel === "method"} title="How every decision is calculated" onClose={() => setPanel(null)} wide>
+        <RubricPanel policy={policy} />
+        <details className="mt-8 border-t border-line pt-4">
+          <summary className="cursor-pointer text-[14px] font-semibold">The same method, in words</summary>
+          <div className="mt-3"><MethodPanel policy={policy} /></div>
+        </details>
       </Drawer>
       <Drawer open={panel === "ledger"} title="Ledger: every application" onClose={() => setPanel(null)} wide>
         {result && (

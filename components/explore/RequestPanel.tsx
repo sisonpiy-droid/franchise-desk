@@ -7,6 +7,7 @@ import type { Decision, RunResult, Status } from "@/lib/engine/types";
 import { pinCells, areaKm2, catchmentCoverage, SERVICE_KM } from "@/lib/map/pinAreas";
 import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
 import { useMemo } from "react";
+import { VerdictBanner } from "../VerdictBanner";
 import { StatusChip, STATUS_LABEL } from "../icons";
 
 export const STATUS_HEX: Record<Status, string> = { APPROVED: "#34d399", CONDITIONAL: "#c3f25c", WAITLISTED: "#9aa3b2", ON_HOLD: "#f5a524", DECLINED: "#f87171", WITHDRAWN: "#8b97a6" };
@@ -113,23 +114,7 @@ export function RequestPanel({ whatIf, category, result, decision, index, total,
             <StatusChip status={decision.status} />
           </div>
 
-          {/* the verdict and its reason, before anything else */}
-          <div className="mt-3 rounded-xl border p-3" style={{ borderColor: `${tone}66`, background: `${tone}12` }} data-testid="verdict">
-            <p className="text-[13px] font-semibold" style={{ color: tone }}>
-              {VERDICT[decision.status]}
-            </p>
-            <p className="mt-1 text-[14px] leading-snug text-ink">{decision.why}</p>
-            {reasons.length > 0 && (
-              <ul className="mt-2 grid gap-1 text-[12.5px] text-ink-2">
-                {reasons.map((r, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span aria-hidden style={{ color: tone }}>•</span>
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <div className="mt-3"><VerdictBanner decision={decision} change={cf} compact /></div>
         </div>
 
         {c && (
@@ -187,12 +172,6 @@ export function RequestPanel({ whatIf, category, result, decision, index, total,
         )}
 
 
-        {whatIf && cf && (
-          <div className="mx-4 mt-3 rounded-xl border border-white/10 p-3">
-            <p className="text-[12.5px] font-semibold text-ink">What would change this decision</p>
-            <p className="mt-1 text-[13px] leading-snug text-ink-2">{cf}</p>
-          </div>
-        )}
 
         <div className="mx-4 mt-3 rounded-xl border border-[#8f7cff55] bg-[#8f7cff10] p-3">
           <p className="text-[12.5px] font-semibold text-[#c9bfff]">Insight</p>

@@ -283,7 +283,7 @@ export default function Desk() {
             </span>
             <span className="flex flex-col leading-tight">
               <span className="text-[15px] font-semibold text-ink">Franchise Desk</span>
-              <span className="text-[11.5px] text-muted">Partner review · expansion team</span>
+              <span className="hidden text-[11.5px] text-muted min-[1650px]:block">Partner review · expansion team</span>
             </span>
           </a>
           {result && (
@@ -297,7 +297,7 @@ export default function Desk() {
           )}
           {result && (
             <label className="ml-3 hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[12px] text-muted lg:flex">
-              Store type
+              <span className="hidden min-[1650px]:inline">Store type</span>
               <select value={category} onChange={(e) => changeCategory(e.target.value as CategoryId)} title={CATEGORY_PRESETS[category].blurb} aria-label="Type of retail store" className="max-w-[190px] truncate rounded-md border border-white/10 bg-[#101019] px-2 py-1 text-[12.5px] text-ink outline-none focus:border-neon">
                 {CATEGORY_IDS.map((id) => (
                   <option key={id} value={id}>{CATEGORY_PRESETS[id].label}</option>
@@ -313,17 +313,15 @@ export default function Desk() {
           {result && dataset && tab === "summary" && (
             <button type="button" onClick={() => setPanel("tower")} title="Open the control tower to see who to call first" className="ml-2 hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 px-3 py-1.5 text-[13px] text-ink-2 hover:bg-white/5 hover:text-ink lg:inline-flex">
               <i className="inline-block size-2 rounded-full" style={{ background: toFollowUp ? "var(--hold)" : "var(--approved)" }} aria-hidden />
-              {toFollowUp ? <><b className="num font-semibold text-ink">{toFollowUp}</b> to follow up today</> : "Nothing to chase today"}
+              {toFollowUp ? <><b className="num font-semibold text-ink">{toFollowUp}</b><span className="hidden min-[1366px]:inline"> to follow up today</span></> : <span>Nothing to chase<span className="hidden min-[1366px]:inline"> today</span></span>}
             </button>
           )}
           <nav className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-thin" aria-label="Tools">
             {result && tab === "explore" && <HeaderButton onClick={() => { setChat(null); setTurns([]); }} icon={<Icon.Upload />} label="New file" />}
             {result && tab === "summary" && (
               <>
-                <HeaderButton onClick={() => setPanel("policy")} icon={<Icon.Sliders />} label="Policy" />
-                <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it is calculated" />
-                <HeaderButton onClick={() => setPanel("notes")} icon={<Icon.Notes />} label="Data notes" />
-                <HeaderButton onClick={() => setPanel("selftest")} icon={<Icon.Shield />} label="Self-test" />
+                <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="Rubric" hint="How every decision is calculated: rules, score, bars" always />
+                <HeaderButton onClick={() => setPanel("policy")} icon={<Icon.Sliders />} label="Policy & checks" hint="Policy, data notes and self-test in one place" always />
                 <HeaderButton
                   onClick={async () => {
                     const { downloadExport } = await import("@/lib/export");
@@ -335,7 +333,7 @@ export default function Desk() {
                 <HeaderButton onClick={() => { setChat(null); setTurns([]); }} icon={<Icon.Upload />} label="New file" />
               </>
             )}
-            {!result && <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it is calculated" />}
+            {!result && <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="Rubric" hint="How every decision is calculated: rules, score, bars" always />}
           </nav>
         </div>
       </header>
@@ -419,15 +417,6 @@ export default function Desk() {
         </>
       )}
 
-      <Drawer open={panel === "policy"} title="Policy" onClose={() => setPanel(null)}>
-        <PolicyPanel
-          policy={policy}
-          onApply={(path, value, label) => {
-            pushUpdate({ kind: "policy", path, value, text: `Policy: ${label} → ${value}` }, `Policy changed (${label} → ${value}). Every decision re-ran from the uploaded file with logged updates replayed.`);
-          }}
-          disabled={!chat}
-        />
-      </Drawer>
       <Drawer open={panel === "method"} title="How every decision is calculated" onClose={() => setPanel(null)} wide>
         <RubricPanel policy={policy} />
         <details className="mt-8 border-t border-line pt-4">
@@ -448,8 +437,23 @@ export default function Desk() {
           />
         )}
       </Drawer>
-      <Drawer open={panel === "selftest"} title="Integrity self-test" onClose={() => setPanel(null)}>
-        {step && <SelfTestPanel run={() => selfTest(step.dataset, step.policy, { today, pinned: {} })} />}
+      <Drawer open={panel === "policy" || panel === "notes" || panel === "selftest"} title="Policy and checks" onClose={() => setPanel(null)}>
+        <div className="mb-4 flex gap-1.5 rounded-full border border-line p-1" role="tablist" aria-label="Policy and checks">
+          {([["policy", "Policy"], ["notes", "Data notes"], ["selftest", "Self-test"]] as const).map(([k, l]) => (
+            <button key={k} type="button" role="tab" aria-selected={panel === k} onClick={() => setPanel(k)} className={`flex-1 rounded-full px-3 py-1.5 text-[13px] font-semibold ${panel === k ? "neon-btn" : "text-ink-2 hover:text-ink"}`}>{l}</button>
+          ))}
+        </div>
+        {panel === "policy" && (
+        <PolicyPanel
+          policy={policy}
+          onApply={(path, value, label) => {
+            pushUpdate({ kind: "policy", path, value, text: `Policy: ${label} → ${value}` }, `Policy changed (${label} → ${value}). Every decision re-ran from the uploaded file with logged updates replayed.`);
+          }}
+          disabled={!chat}
+        />
+        )}
+        {panel === "notes" && dataset && <DataNotesPanel dataset={dataset} log={chat?.session.log ?? []} />}
+        {panel === "selftest" && step && <SelfTestPanel run={() => selfTest(step.dataset, step.policy, { today, pinned: {} })} />}
       </Drawer>
       <Drawer open={panel === "tower"} title="Control tower" onClose={() => setPanel(null)}>
         {result && (
@@ -465,9 +469,6 @@ export default function Desk() {
             }}
           />
         )}
-      </Drawer>
-      <Drawer open={panel === "notes"} title="Data notes" onClose={() => setPanel(null)}>
-        {dataset && <DataNotesPanel dataset={dataset} log={chat?.session.log ?? []} />}
       </Drawer>
     </div>
   );
@@ -617,12 +618,14 @@ const Diorama = dynamic(() => import("./map/Diorama"), {
   loading: () => <div className="grid h-full place-items-center text-[13px] text-muted">Building the 3D view of India…</div>,
 });
 
-function HeaderButton({ onClick, icon, label }: { onClick: () => void; icon: React.ReactNode; label: string }) {
+function HeaderButton({ onClick, icon, label, hint, always }: { onClick: () => void; icon: React.ReactNode; label: string; hint?: string; always?: boolean }) {
   return (
-    <button type="button" onClick={onClick} title={label} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] text-ink-2 hover:bg-surface-2 hover:text-ink">
+    <button type="button" onClick={onClick} title={hint ?? label} className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] hover:bg-surface-2 hover:text-ink ${always ? "border border-line font-semibold text-ink" : "text-ink-2"}`}>
       {icon}
-      <span className="hidden 2xl:inline">{label}</span>
-      <span className="sr-only 2xl:hidden">{label}</span>
+      {always ? <span>{label}</span> : (<>
+        <span className="hidden min-[1650px]:inline">{label}</span>
+        <span className="sr-only min-[1650px]:hidden">{label}</span>
+      </>)}
     </button>
   );
 }

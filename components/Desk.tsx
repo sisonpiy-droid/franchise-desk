@@ -29,6 +29,7 @@ import { territoryOverlay } from "@/lib/map/pinAreas";
 import { PinLegend } from "./map/PinLegend";
 import { selfTest } from "@/lib/engine/selftest";
 import { controlTower } from "@/lib/engine/tower";
+import { counterfactualSentence } from "@/lib/engine/counterfactual";
 
 const todayIso = () => {
   const d = new Date();
@@ -76,6 +77,7 @@ export default function Desk() {
 
   const steps = useMemo(() => (chat ? replay(chat.session) : null), [chat]);
   const step = steps?.at(-1) ?? null;
+  const whatIf = (d: Decision) => (step ? counterfactualSentence(step, d, today, step.policy) : "");
   const result = step?.result ?? null;
   const dataset = step?.dataset ?? null;
   const policy = chat ? effectivePolicy(chat.session) : DEFAULT_POLICY;
@@ -340,6 +342,7 @@ export default function Desk() {
         <EmptyState category={category} onCategory={setCategory} onFile={onFile} onSample={(city) => onSample(undefined, city)} error={error} loading={loading} />
       ) : tab === "explore" ? (
         <Explore
+          whatIf={whatIf}
           category={category}
           result={result}
           openCity={openCity}
@@ -372,7 +375,7 @@ export default function Desk() {
             {briefOpen ? (
               <BriefView result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
             ) : (
-                  <WorldMap category={category} result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
+                  <WorldMap whatIf={whatIf} category={category} result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
             )}
           </section>
           {notice && (
@@ -457,7 +460,7 @@ const TerrainMap = dynamic(() => import("./map/TerrainMap"), {
 });
 
 /** The world behind the HUD. Optional by design: any failure leaves a calm backdrop and the roster carries everything. */
-function WorldMap({ category, result: fullResult, statusFilter, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { category: CategoryId; result: RunResult; statusFilter: Status[]; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
+function WorldMap({ whatIf, category, result: fullResult, statusFilter, selected, highlight, onSelect, activeTerritory, onPickTerritory, openRequest, onOpenedRequest }: { whatIf: (d: Decision) => string; category: CategoryId; result: RunResult; statusFilter: Status[]; selected: string | null; highlight: string[]; onSelect: (k: string) => void; activeTerritory: string | null; onPickTerritory: (k: string | null) => void; openRequest: string | null; onOpenedRequest: () => void }) {
   // Status chips filter the map too: only requests with a chosen status are counted, listed and drawn,
   // and a territory with none of them drops off the map.
   const result = useMemo<RunResult>(() => (statusFilter.length ? { ...fullResult, decisions: fullResult.decisions.filter((d) => statusFilter.includes(d.status)) } : fullResult), [fullResult, statusFilter]);
@@ -557,6 +560,7 @@ function WorldMap({ category, result: fullResult, statusFilter, selected, highli
       {(flat || mode === "overview") && !openKey && <PinLegend points={points} corner="right" />}
       {requestDecision ? (
         <LocationPanel
+          whatIf={whatIf}
           category={category}
           result={result}
           decision={requestDecision}

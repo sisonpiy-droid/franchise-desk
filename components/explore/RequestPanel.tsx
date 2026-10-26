@@ -6,6 +6,7 @@ import reference from "@/lib/engine/reference.json";
 import type { Decision, RunResult, Status } from "@/lib/engine/types";
 import { pinCells, areaKm2, catchmentCoverage, SERVICE_KM } from "@/lib/map/pinAreas";
 import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
+import { useMemo } from "react";
 import { StatusChip, STATUS_LABEL } from "../icons";
 
 export const STATUS_HEX: Record<Status, string> = { APPROVED: "#34d399", CONDITIONAL: "#c3f25c", WAITLISTED: "#9aa3b2", ON_HOLD: "#f5a524", DECLINED: "#f87171", WITHDRAWN: "#8b97a6" };
@@ -69,7 +70,7 @@ export function NearbyStores({ result, at }: { result: RunResult; at: { lat: num
   );
 }
 
-export function RequestPanel({ category, result, decision, index, total, onPrev, onNext, onClose, onFullDecision }: { category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onClose: () => void; onFullDecision: () => void }) {
+export function RequestPanel({ whatIf, category, result, decision, index, total, onPrev, onNext, onClose, onFullDecision }: { whatIf?: (d: Decision) => string; category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onClose: () => void; onFullDecision: () => void }) {
   const pin = decision.allocatedPin ?? decision.pin;
   const c = centroid(pin);
   const q = c ? `${c.lat.toFixed(5)},${c.lon.toFixed(5)}` : "";
@@ -79,6 +80,8 @@ export function RequestPanel({ category, result, decision, index, total, onPrev,
   const t = decision.territoryKey ? result.territories.find((x) => x.key === decision.territoryKey) : null;
   const rivals = result.decisions.filter((d) => d.key !== decision.key && decision.territoryKey && d.territoryKey === decision.territoryKey);
   const tone = STATUS_HEX[decision.status];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cf = useMemo(() => whatIf?.(decision) ?? "", [decision, result]);
   const reasons = decision.status === "APPROVED" ? [] : decision.detail.slice(0, 3);
   return (
     <section className="rise absolute inset-x-2 bottom-2 z-[6] flex max-h-[62%] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c13]/95 shadow-2xl backdrop-blur lg:inset-x-auto lg:bottom-3 lg:right-3 lg:top-3 lg:max-h-none lg:w-[420px]" aria-label={`Request ${decision.id}`}>
@@ -180,6 +183,14 @@ export function RequestPanel({ category, result, decision, index, total, onPrev,
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+
+        {whatIf && cf && (
+          <div className="mx-4 mt-3 rounded-xl border border-white/10 p-3">
+            <p className="text-[12.5px] font-semibold text-ink">What would change this decision</p>
+            <p className="mt-1 text-[13px] leading-snug text-ink-2">{cf}</p>
           </div>
         )}
 

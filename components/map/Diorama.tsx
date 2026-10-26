@@ -581,13 +581,13 @@ export default function Diorama({ points, activeKey, onPick, reducedMotion, onFa
             const labelRect = (t: { flip: boolean; dy: number }) => ({ x: t.flip ? it.x - P / 2 - 4 - lw : it.x + P / 2 + 4, y: it.y - 14 - lh + t.dy, w: lw, h: lh });
             const tries: { flip: boolean; dy: number }[] = [];
             if (it.p.last) tries.push(it.p.last);
-            for (const dy of [0, -row, row, -2 * row, 2 * row, -3 * row]) for (const flip of [false, true]) tries.push({ flip, dy });
+            for (const dy of [0, -row, row, -2 * row, 2 * row, -3 * row, 3 * row, -4 * row, 4 * row, -5 * row]) for (const flip of [false, true]) tries.push({ flip, dy });
             let best = tries[0];
             let bestScore = Infinity;
             let bestRect = labelRect(best);
             for (const t of search || !it.p.last ? tries : tries.slice(0, 1)) {
               const r = labelRect(t);
-              let score = (r.x < 4 ? 4 - r.x : 0) * 50 + (r.x + r.w > w - 4 ? r.x + r.w - w + 4 : 0) * 50 + (r.y < 4 ? 4 - r.y : 0) * 50 + Math.abs(t.dy) * 0.4;
+              let score = (r.x < 4 ? 4 - r.x : 0) * 400 + (r.x + r.w > w - 4 ? r.x + r.w - w + 4 : 0) * 400 + (r.y < 4 ? 4 - r.y : 0) * 400 + Math.abs(t.dy) * 0.4;
               for (const q of placed) {
                 const ox = Math.min(r.x + r.w, q.x + q.w) - Math.max(r.x, q.x);
                 const oy = Math.min(r.y + r.h, q.y + q.h) - Math.max(r.y, q.y);

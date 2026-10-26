@@ -5,6 +5,7 @@ import reference from "@/lib/engine/reference.json";
 import type { Decision, RunResult } from "@/lib/engine/types";
 import { StatusChip, STATUS_LABEL } from "../icons";
 import { NearbyStores } from "../explore/RequestPanel";
+import { useMemo } from "react";
 import { footfallPerDay, presetOf, type CategoryId } from "@/lib/engine/categories";
 import { pinCells, areaKm2, SERVICE_KM } from "@/lib/map/pinAreas";
 
@@ -105,9 +106,11 @@ export function MapLegend() {
   );
 }
 
-export function LocationPanel({ category, result, decision, index, total, onPrev, onNext, onBack, onViewDecision }: { category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onBack: () => void; onViewDecision: () => void }) {
+export function LocationPanel({ whatIf, category, result, decision, index, total, onPrev, onNext, onBack, onViewDecision }: { whatIf?: (d: Decision) => string; category?: CategoryId; result: RunResult; decision: Decision; index: number; total: number; onPrev: () => void; onNext: () => void; onBack: () => void; onViewDecision: () => void }) {
   const pin = decision.allocatedPin ?? decision.pin;
   const c = centroid(pin);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cf = useMemo(() => whatIf?.(decision) ?? "", [decision, result]);
   const city = pin ? cityOfPin(pin) : undefined;
   const q = c ? `${c.lat.toFixed(5)},${c.lon.toFixed(5)}` : "";
   const cell = pin ? pinCells([pin]).get(pin) : undefined;
@@ -197,6 +200,13 @@ export function LocationPanel({ category, result, decision, index, total, onPrev
           )}
         </dl>
         {c && <NearbyStores result={result} at={c} />}
+        {whatIf && cf && (
+          <div className="mx-4 mt-3 rounded-xl border border-white/10 p-3">
+            <p className="text-[12.5px] font-semibold text-ink">What would change this decision</p>
+            <p className="mt-1 text-[13px] leading-snug text-ink-2">{cf}</p>
+          </div>
+        )}
+
         <div className="mt-3 border-t border-white/10 px-4 py-3">
           <MapLegend />
         </div>

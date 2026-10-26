@@ -184,6 +184,11 @@ export function parseWorkbook(sheets: SheetData[], fileName = "upload.xlsx", sou
       stores.push({ id, city: cellText(r[scols.city]), pin, year: yr === null ? null : Math.round(yr) });
     }
   }
+  const seenStoreIds = new Set<string>();
+  for (const s of stores) {
+    if (seenStoreIds.has(s.id)) notes.push({ sheet: "Existing stores", id: s.id, message: `${s.id} appears more than once in Existing stores (pin ${s.pin}). Both rows are counted as separate stores; check the ID.`, severity: "warn" });
+    seenStoreIds.add(s.id);
+  }
   if (!stores.length) {
     stores = reference.stores.map((s) => ({ ...s }));
     notes.push({ sheet: "Existing stores", message: "No Existing stores sheet found, so the fixed list of 10 stores from the case template was used.", severity: "info" });

@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { centroid } from "@/lib/engine/geo";
-import type { RunResult } from "@/lib/engine/types";
+import type { Decision, RunResult } from "@/lib/engine/types";
 import { territoryPoints, type MapPoint } from "@/lib/map/terrain";
 import { territoryOverlay } from "@/lib/map/pinAreas";
 import { loadIndia, loadKarnataka, spansIndia, territoryZones } from "@/lib/map/zones";
@@ -42,7 +42,7 @@ function territoryBbox(points: MapPoint[]): [number, number, number, number] {
   return [w, s, e, n];
 }
 
-export function Explore({ category, result, onFullDecision, onSummary, openCity, onOpened }: { category?: CategoryId; result: RunResult; onFullDecision: (key: string) => void; onSummary: () => void; openCity?: string | null; onOpened?: () => void }) {
+export function Explore({ whatIf, category, result, onFullDecision, onSummary, openCity, onOpened }: { whatIf?: (d: Decision) => string; category?: CategoryId; result: RunResult; onFullDecision: (key: string) => void; onSummary: () => void; openCity?: string | null; onOpened?: () => void }) {
   const [territory, setTerritory] = useState<string | null>(null);
   const [request, setRequest] = useState<string | null>(null);
   const [reduced, setReduced] = useState(false);
@@ -175,6 +175,7 @@ export function Explore({ category, result, onFullDecision, onSummary, openCity,
 
       {decision && (
         <RequestPanel
+          whatIf={whatIf}
           category={category}
           result={result}
           decision={decision}

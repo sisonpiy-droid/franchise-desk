@@ -63,7 +63,10 @@ const STORE_COLS: Record<string, string[]> = {
 function findSheet(sheets: SheetData[], words: string[], headerKey: string): SheetData | null {
   const byName = sheets.find((s) => words.some((w) => s.name.toLowerCase().replace(/[^a-z]/g, "").includes(w)));
   if (byName && findHeaderRow(byName, headerKey) >= 0) return byName;
-  return sheets.find((s) => findHeaderRow(s, headerKey) >= 0) ?? null;
+  // A renamed sheet may still be found by its header, but never one of the reference sheets: the Field guide and
+  // Allowed values list "Application ID" and "Pin code" as text and would otherwise be read as data rows.
+  const reference = /field|guide|glossary|allowed|value|territor|store/i;
+  return sheets.find((s) => !reference.test(s.name) && findHeaderRow(s, headerKey) >= 0) ?? null;
 }
 
 function findHeaderRow(sheet: SheetData, key: string): number {

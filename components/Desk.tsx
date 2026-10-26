@@ -16,6 +16,7 @@ import { Explore } from "./Explore";
 import { ResultsTable } from "./ResultsTable";
 import { DecisionCard } from "./DecisionCard";
 import { AskDesk, type Turn } from "./AskDesk";
+import { StrategyView } from "./StrategyView";
 import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
@@ -44,7 +45,7 @@ export default function Desk() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   // Explore (the map experience) is the default; Summary holds the counts, list, ledger and the desk
-  const [tab, setTab] = useState<"explore" | "summary">("explore");
+  const [tab, setTab] = useState<"explore" | "summary" | "strategy">("explore");
   const [briefOpen, setBriefOpen] = useState(false);
   // The Excel file does not say what the brand sells, so the user picks a store type and the whole policy follows.
   const [category, setCategory] = useState<CategoryId>(DEFAULT_CATEGORY);
@@ -286,9 +287,9 @@ export default function Desk() {
           </a>
           {result && (
             <div className="ml-2 flex shrink-0 rounded-full border border-white/10 bg-white/[0.03] p-0.5" role="tablist" aria-label="View">
-              {(["explore", "summary"] as const).map((k) => (
+              {(["explore", "summary", "strategy"] as const).map((k) => (
                 <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`rounded-full px-3.5 py-1 text-[13px] font-semibold transition-colors ${tab === k ? "neon-btn" : "text-ink-2 hover:text-ink"}`}>
-                  {k === "explore" ? "Explore" : "Summary"}
+                  {k === "explore" ? "Explore" : k === "summary" ? "Summary" : "Strategy"}
                 </button>
               ))}
             </div>
@@ -351,6 +352,19 @@ export default function Desk() {
           onFullDecision={(k) => {
             setTab("summary");
             setSelected(k);
+          }}
+        />
+      ) : tab === "strategy" ? (
+        <StrategyView
+          step={step!}
+          today={today}
+          onOpenTerritory={(key) => {
+            setTerrFilter(key);
+            setTab("summary");
+          }}
+          onOpenPartner={(key) => {
+            setTab("summary");
+            setSelected(key);
           }}
         />
       ) : (

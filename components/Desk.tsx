@@ -20,6 +20,7 @@ import { Drawer, PolicyPanel, MethodPanel, DataNotesPanel } from "./Panels";
 import { SelfTestPanel, TowerPanel } from "./TowerPanels";
 import { HudStats } from "./hud/HudStats";
 import { BriefView } from "./brief/BriefView";
+import { OrdersHeat } from "./dashboard/OrdersHeat";
 import { Sidebar } from "./hud/Sidebar";
 import { buildTerrainData, territoryPoints } from "@/lib/map/terrain";
 import { centroid } from "@/lib/engine/geo";
@@ -353,7 +354,14 @@ export default function Desk() {
             {briefOpen ? (
               <BriefView result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
             ) : (
-              <WorldMap result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
+              <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+                <div className="flex h-[62vh] min-h-[420px] flex-col">
+                  <WorldMap result={result} statusFilter={statusFilter} selected={selected} highlight={highlight} onSelect={setSelected} activeTerritory={terrFilter} onPickTerritory={setTerrFilter} openRequest={openRequest} onOpenedRequest={() => setOpenRequest(null)} />
+                </div>
+                <div className="p-4 pb-32">
+                  <OrdersHeat result={result} dataset={dataset} policy={policy} today={today} onSelect={setSelected} />
+                </div>
+              </div>
             )}
           </section>
           {notice && (

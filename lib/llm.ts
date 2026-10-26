@@ -26,14 +26,14 @@ async function pickModel(key: string): Promise<string> {
   return discovered;
 }
 
-export async function complete(prompt: string, jsonSchema: object, system?: string): Promise<unknown> {
+export async function complete(prompt: string, jsonSchema: object, system?: string, timeoutMs: number = TIMEOUT_MS): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new LlmError("no key");
   const model = await pickModel(key);
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": key },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({
       ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
       contents: [{ role: "user", parts: [{ text: prompt }] }],

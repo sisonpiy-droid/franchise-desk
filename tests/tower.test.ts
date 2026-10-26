@@ -31,6 +31,10 @@ describe("control tower", () => {
     expect(t.calls.length).toBeGreaterThan(0);
     for (const c of t.calls) expect(r.decisions.find((d) => d.key === c.key)!.status).not.toBe("DECLINED");
   });
+  it("counts every applicant who needs a person today, not just the top few shown", () => {
+    expect(t.callsTotal).toBeGreaterThanOrEqual(t.calls.length);
+    expect(t.callsTotal).toBeGreaterThan(0);
+  });
   it("capacity plan sums partner capital", () => {
     expect(t.capacity.committedLakh).toBeGreaterThan(100);
   });

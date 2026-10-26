@@ -51,6 +51,8 @@ export interface Pipeline {
 }
 
 export interface Tower {
+  /** How many applicants need a person to act today, before the list is cut to the top few. */
+  callsTotal: number;
   delay: Delay;
   pipeline: Pipeline;
   funnel: { label: string; n: number }[];
@@ -173,5 +175,5 @@ export function controlTower(r: RunResult, policy: Policy, today: string): Tower
     });
   const pipeline: Pipeline = { received: live.length, placed, rate: Math.round(rate * 100) / 100, smallSample: live.length < SMALL_SAMPLE, rows, totalSource: rows.reduce((n, x) => n + x.sourceApplicants, 0) };
 
-  return { delay, pipeline, funnel, openings, calls: calls.slice(0, 8), gap, capacity: { committedLakh, trainingSeats, fieldVisits, waves }, probabilities };
+  return { callsTotal: calls.length, delay, pipeline, funnel, openings, calls: calls.slice(0, 8), gap, capacity: { committedLakh, trainingSeats, fieldVisits, waves }, probabilities };
 }

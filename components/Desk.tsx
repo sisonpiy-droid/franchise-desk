@@ -79,6 +79,7 @@ export default function Desk() {
   const result = step?.result ?? null;
   const dataset = step?.dataset ?? null;
   const policy = chat ? effectivePolicy(chat.session) : DEFAULT_POLICY;
+  const toFollowUp = useMemo(() => (result ? controlTower(result, policy, today).callsTotal : 0), [result, policy, today]);
 
   const start = useCallback(
     (ds: Dataset) => {
@@ -303,6 +304,12 @@ export default function Desk() {
           {result && dataset && tab === "summary" && (
             <button type="button" onClick={() => setPanel("tower")} title="Who to call first, expected openings, demand gap, capacity" className="neon-btn ml-3 hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold md:inline-flex">
               <Icon.Clock size={15} /> Control tower
+            </button>
+          )}
+          {result && dataset && tab === "summary" && (
+            <button type="button" onClick={() => setPanel("tower")} title="Open the control tower to see who to call first" className="ml-2 hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-white/10 px-3 py-1.5 text-[13px] text-ink-2 hover:bg-white/5 hover:text-ink lg:inline-flex">
+              <i className="inline-block size-2 rounded-full" style={{ background: toFollowUp ? "var(--hold)" : "var(--approved)" }} aria-hidden />
+              {toFollowUp ? <><b className="num font-semibold text-ink">{toFollowUp}</b> to follow up today</> : "Nothing to chase today"}
             </button>
           )}
           <nav className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-thin" aria-label="Tools">

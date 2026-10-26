@@ -106,6 +106,72 @@ export function TowerPanel({ tower, onSelect, onSimulate }: { tower: Tower; onSe
       </section>
 
       <section>
+        <h3 className="font-semibold">Cost of waiting</h3>
+        {tower.delay.lostPerMonthLakh === null ? (
+          <p className="mt-1 text-ink-2">{tower.delay.basis}</p>
+        ) : (
+          <>
+            <p className="mt-0.5 text-[12px] text-muted">What the usable slots nobody holds yet would earn. Illustrative: it uses the payback defaults, not the brand&apos;s sales.</p>
+            <dl className="mt-2 grid grid-cols-3 gap-3">
+              <div>
+                <dt className="text-[12px] text-muted">Open slots</dt>
+                <dd className="num text-[18px] font-semibold">{tower.delay.openSlots}</dd>
+              </div>
+              <div>
+                <dt className="text-[12px] text-muted">Lost each month</dt>
+                <dd className="num text-[18px] font-semibold">₹{tower.delay.lostPerMonthLakh} lakh</dd>
+              </div>
+              <div>
+                <dt className="text-[12px] text-muted">Lost each week</dt>
+                <dd className="num text-[18px] font-semibold">₹{tower.delay.lostPerWeekLakh} lakh</dd>
+              </div>
+            </dl>
+            <ul className="mt-2 space-y-1 text-ink-2">
+              {tower.delay.pendingPartners > 0 && (
+                <li>
+                  <b className="num">₹{tower.delay.pendingPerMonthLakh} lakh</b> a month depends on {tower.delay.pendingPartners} conditional partner{tower.delay.pendingPartners === 1 ? "" : "s"} clearing their check or finding a site. Every week one stalls, that slice of profit waits.
+                </li>
+              )}
+              {tower.delay.blockedSlots > 0 && (
+                <li>
+                  <b className="num">₹{tower.delay.blockedPerMonthLakh} lakh</b> a month is out of reach on {tower.delay.blockedSlots} wanted slot{tower.delay.blockedSlots === 1 ? "" : "s"} with no free pin. Sourcing will not fix this: review the pin list.
+                </li>
+              )}
+            </ul>
+            <p className="mt-1 text-[11.5px] text-muted">{tower.delay.basis} About ₹{tower.delay.perSlotMonthlyLakh} lakh a month per slot.</p>
+          </>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold">Applicants to source</h3>
+        {tower.pipeline.rows.length === 0 ? (
+          <p className="mt-1 text-muted">Every usable slot is held, so no new applicants are needed.</p>
+        ) : (
+          <>
+            <p className="mt-0.5 text-[12px] text-muted">
+              {tower.pipeline.placed} of {tower.pipeline.received} applications moved forward in this file ({Math.round(tower.pipeline.rate * 100)}%). Each territory needs enough new applications to fill what its held applicants will not.
+              {tower.pipeline.smallSample ? " The file is small, so treat the rate as a rough guide." : ""} Half of the holds are assumed to clear (illustrative).
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {tower.pipeline.rows.map((p) => (
+                <li key={p.territory} className="flex gap-2">
+                  <span className="num w-14 shrink-0 font-medium">{p.territory}</span>
+                  <span className="text-ink-2">
+                    {p.open} open, {p.holds} on hold (about {p.fromHolds} expected to clear): source <b className="num">{p.sourceApplicants}</b> more application{p.sourceApplicants === 1 ? "" : "s"}
+                    {p.city ? ` in ${p.city}` : ""}.
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1.5 text-[12.5px]">
+              <b className="num">{tower.pipeline.totalSource}</b> applications to source in total.
+            </p>
+          </>
+        )}
+      </section>
+
+      <section>
         <h3 className="font-semibold">Capacity plan</h3>
         <dl className="mt-2 grid grid-cols-2 gap-3">
           <div>

@@ -45,26 +45,8 @@ const MODES = {
   region: { ex: 7, base: -1.1, step: 1, strata: 7, seg: 1 },
   area: { ex: 3, base: -0.5, step: 1, strata: 7, seg: 1 },
 };
-// Backdrop: forested ridges fading into a green evening haze, so the stage blends with the terrain (drawn here, no photo)
-const ridge = (y: number, amp: number, f1: number, f2: number, ph: number) => {
-  let d = "M0 900 L0 " + y;
-  for (let x = 0; x <= 1600; x += 20) d += " L" + x + " " + (y - amp * (0.55 * Math.sin(x / f1 + ph) + 0.3 * Math.sin(x / f2 + ph * 2) + 0.15 * Math.sin(x / 37 + ph * 3))).toFixed(1);
-  return d + " L1600 900 Z";
-};
-const BACKDROP =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">' +
-      '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#060c0a"/><stop offset="0.45" stop-color="#0f1f19"/><stop offset="0.7" stop-color="#1c3428"/><stop offset="0.86" stop-color="#2f4a33"/></linearGradient>' +
-      '<radialGradient id="g" cx="0.5" cy="0.78" r="0.6"><stop offset="0" stop-color="#d8c58a" stop-opacity="0.22"/><stop offset="1" stop-color="#d8c58a" stop-opacity="0"/></radialGradient>' +
-      '<linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#07070b" stop-opacity="0"/><stop offset="1" stop-color="#07070b"/></linearGradient></defs>' +
-      '<rect width="1600" height="900" fill="url(#s)"/><rect width="1600" height="900" fill="url(#g)"/>' +
-      '<path d="' + ridge(560, 150, 210, 90, 1) + '" fill="#3b5a43" opacity="0.55"/>' +
-      '<path d="' + ridge(620, 120, 160, 70, 2.3) + '" fill="#2a4532" opacity="0.75"/>' +
-      '<path d="' + ridge(690, 95, 130, 55, 4.1) + '" fill="#1a2e21" opacity="0.9"/>' +
-      '<path d="' + ridge(760, 70, 110, 45, 5.7) + '" fill="#0f1c14"/>' +
-      '<rect y="620" width="1600" height="280" fill="url(#h)"/></svg>',
-  );
+// Backdrop: a rendered 3D emerald low-poly mountain range under a moonlit sky, so the stage blends with the green terrain
+const BACKDROP = "/diorama/backdrop.jpg";
 const AREA_COLORS: Record<string, string> = { applicant: "#8f7cff", free: "#3cf2c0", rival: "#f5a524", store: "#f87171", taken: "#9aa3b2" };
 
 /** A sandstone cliff texture: wavy layers of warm tones with grain and darker seams, tiled along the walls. */

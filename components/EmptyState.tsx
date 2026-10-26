@@ -1,7 +1,8 @@
 "use client";
 
 import { CATEGORY_IDS, CATEGORY_PRESETS, type CategoryId } from "@/lib/engine/categories";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useWordsIn, Words } from "./motion";
 import dynamic from "next/dynamic";
 import { Icon } from "./icons";
 import { cityPoints } from "@/lib/map/terrain";
@@ -19,6 +20,8 @@ const Diorama = dynamic(() => import("./map/Diorama"), {
 
 export function EmptyState({ onFile, onSample, error, loading, category, onCategory }: { onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean; category: CategoryId; onCategory: (c: CategoryId) => void }) {
   const [over, setOver] = useState(false);
+  const hero = useRef<HTMLDivElement>(null);
+  useWordsIn(hero, 0.15);
   // before any upload, the pins count the requests in the bundled sample file (invented applicants), marked as sample
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
@@ -68,10 +71,12 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
       }}
     >
       {map3d && <Diorama source={{ kind: "region" }} points={points} overlay={zones} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} reducedMotion={reduced} onFail={() => setMap3d(false)} autoRotate hint="Drag to rotate · scroll to zoom · click a city to see its requests" />}
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-[5] hidden justify-center px-4 sm:flex">
-        <p className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-[#0d0d14cc] px-4 py-2 text-[14px] text-ink backdrop-blur" style={{ boxShadow: "0 0 30px #8f7cff22" }}>
-          <i className="inline-block size-2 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 10px var(--neon)" }} aria-hidden />
-          <span><b className="font-semibold">Your territories, live on the map.</b> <span className="text-ink-2">Click on any to see requests.</span></span>
+      <div ref={hero} className="pointer-events-none absolute inset-x-0 top-5 z-[5] hidden px-4 text-center sm:block">
+        <h1 className="font-[var(--font-hud)] text-[clamp(30px,4.4vw,58px)] font-bold uppercase leading-none tracking-[0.06em]" style={{ color: "#eafff5", filter: "drop-shadow(0 0 22px rgba(60,242,192,.55)) drop-shadow(0 6px 20px rgba(0,0,0,.7))" }}>
+          <Words text="Your territories" />
+        </h1>
+        <p className="fade-in mt-2.5 text-[clamp(14px,1.5vw,19px)] tracking-wide text-[#d9fff0]" style={{ textShadow: "0 2px 18px rgba(0,0,0,.8)" }}>
+          Live on the map. <span className="text-[#9af0c4]">Click on any to see its requests.</span>
         </p>
       </div>
       <PinLegend points={points} sample />

@@ -301,23 +301,14 @@ export default function Desk() {
             </label>
           )}
           {result && dataset && tab === "summary" && (
-            <div className="num ml-3 hidden min-w-0 items-center gap-2 whitespace-nowrap text-[12px] text-muted md:flex">
-              {dataset.source !== "sample" && <span className="max-w-[22ch] truncate" title={dataset.fileName}>{dataset.fileName}</span>}
-              <span title="Run ID: a hash of the input, policy and date">Run {result.runId}</span>
-              <span aria-hidden>·</span>
-              <span>Policy {result.policyVersion}</span>
-              <span aria-hidden>·</span>
-              <span className="inline-flex items-center gap-1.5" title={ai === "on" ? "Questions are parsed by rules first; the model only helps with phrasing the rules do not understand. It never decides." : "Model unavailable or not configured: every answer comes from the rule-based parser."}>
-                <i className="inline-block size-1.5 rounded-full" style={{ background: ai === "on" ? "var(--approved)" : "var(--muted)", boxShadow: ai === "on" ? "0 0 8px var(--approved)" : undefined }} />
-                {ai === "on" ? "AI available" : "Rule-based"}
-              </span>
-            </div>
+            <button type="button" onClick={() => setPanel("tower")} title="Who to call first, expected openings, demand gap, capacity" className="neon-btn ml-3 hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold md:inline-flex">
+              <Icon.Clock size={15} /> Control tower
+            </button>
           )}
           <nav className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto scrollbar-thin" aria-label="Tools">
             {result && tab === "explore" && <HeaderButton onClick={() => { setChat(null); setTurns([]); }} icon={<Icon.Upload />} label="New file" />}
             {result && tab === "summary" && (
               <>
-                <HeaderButton onClick={() => setPanel("tower")} icon={<Icon.Clock />} label="Control tower" />
                 <HeaderButton onClick={() => setPanel("policy")} icon={<Icon.Sliders />} label="Policy" />
                 <HeaderButton onClick={() => setPanel("method")} icon={<Icon.Book />} label="How it decides" />
                 <HeaderButton onClick={() => setPanel("notes")} icon={<Icon.Notes />} label="Data notes" />

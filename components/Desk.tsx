@@ -418,7 +418,7 @@ export default function Desk() {
       )}
 
       <Drawer open={panel === "method"} title="How every decision is calculated" onClose={() => setPanel(null)} wide>
-        <RubricPanel policy={policy} />
+        <RubricPanel policy={policy} result={result} onOpen={(k) => { setPanel(null); setTab("summary"); setSelected(k); }} />
         <details className="mt-8 border-t border-line pt-4">
           <summary className="cursor-pointer text-[14px] font-semibold">The same method, in words</summary>
           <div className="mt-3"><MethodPanel policy={policy} /></div>

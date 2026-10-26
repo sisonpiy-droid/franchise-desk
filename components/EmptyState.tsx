@@ -1,8 +1,7 @@
 "use client";
 
 import { CATEGORY_IDS, CATEGORY_PRESETS, type CategoryId } from "@/lib/engine/categories";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useWordsIn, Words } from "./motion";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Icon } from "./icons";
 import { cityPoints } from "@/lib/map/terrain";
@@ -20,8 +19,6 @@ const Diorama = dynamic(() => import("./map/Diorama"), {
 
 export function EmptyState({ onFile, onSample, error, loading, category, onCategory }: { onFile: (f: File) => void; onSample: (openCity?: string) => void; error: string | null; loading: boolean; category: CategoryId; onCategory: (c: CategoryId) => void }) {
   const [over, setOver] = useState(false);
-  const hero = useRef<HTMLDivElement>(null);
-  useWordsIn(hero, 0.2);
   // before any upload, the pins count the requests in the bundled sample file (invented applicants), marked as sample
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
@@ -71,14 +68,6 @@ export function EmptyState({ onFile, onSample, error, loading, category, onCateg
       }}
     >
       {map3d && <Diorama source={{ kind: "region" }} points={points} overlay={zones} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} reducedMotion={reduced} onFail={() => setMap3d(false)} autoRotate hint="Drag to rotate · scroll to zoom · click a city to see its requests" />}
-      <div ref={hero} className="pointer-events-none absolute inset-x-0 top-5 z-[5] hidden px-4 text-center sm:block">
-        <h1 className="text-[clamp(22px,3vw,36px)] font-semibold leading-tight tracking-tight" style={{ textShadow: "0 2px 18px rgba(0,0,0,.75)" }}>
-          <Words text="Where to open next." />
-          <br />
-          <Words text="Who to trust with it." className="text-neon" />
-        </h1>
-        <p className="fade-in mt-2 text-[13.5px] text-ink-2">Upload the workbook. Every decision comes with its reason.</p>
-      </div>
       <PinLegend points={points} sample />
       {!map3d && <FlatIndia points={points} activeKey={picked} onPick={(k) => onSample(points.find((p) => p.key === k)?.title)} />}
       {over && <div className="pointer-events-none absolute inset-3 z-[4] grid place-items-center rounded-2xl border-2 border-dashed border-[#b4a6ff] bg-[#8f7cff14] text-[16px] font-semibold text-white">Drop the Excel file to open it</div>}

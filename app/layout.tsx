@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Schibsted_Grotesk, Newsreader, Noto_Sans_Kannada, Noto_Sans_Devanagari, Chakra_Petch } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const ui = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-ui", display: "swap" });
@@ -35,7 +36,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" as="image" href="/diorama/region/sat.jpg" crossOrigin="anonymous" />
         <link rel="preload" as="image" href="/diorama/region/height.png" crossOrigin="anonymous" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Anonymous visit counts (Vercel Web Analytics): no cookies, nothing from uploaded files. Quiet if it is switched off or blocked. */}
+        <Script id="va-queue" strategy="afterInteractive">{"window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};"}</Script>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" defer />
+      </body>
     </html>
   );
 }

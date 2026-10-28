@@ -6,7 +6,7 @@ import { DEFAULT_POLICY } from "@/lib/engine/policy";
 import { newSession, replay, effectivePolicy, type Update } from "@/lib/engine/session";
 import { parseWorkbook, ParseError } from "@/lib/parse/parse";
 import { readWorkbook, MAX_FILE_BYTES } from "@/lib/parse/xlsx";
-import { parseRules } from "@/lib/chat/rules";
+import { isFinalHelp, parseRules } from "@/lib/chat/rules";
 import { respond, replyText, type ChatState, type Reply } from "@/lib/chat/respond";
 import { ParsedSchema, type Parsed } from "@/lib/chat/commands";
 import type { Dataset, Decision, RunResult, Status } from "@/lib/engine/types";
@@ -234,7 +234,7 @@ export default function Desk() {
         let mode: Reply["mode"] = "Rule-based";
         let memory = rules.memory;
         // Rules first (fast, deterministic); the model only helps when the rules could not understand the message.
-        const needsModel = rules.commands.every((c) => c.intent === "help");
+        const needsModel = rules.commands.every((c) => c.intent === "help") && !rules.commands.some(isFinalHelp);
         if (needsModel) {
           const m = await tryModel(text, chat);
           if (m) {

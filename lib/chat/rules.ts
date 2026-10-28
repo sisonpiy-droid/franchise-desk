@@ -39,6 +39,30 @@ function tersIn(text: string): string[] {
   return [...new Set(out)];
 }
 
+const nameTokens = (name: string): string[] => name.toLowerCase().normalize("NFKD").replace(/[^a-z\s]/g, " ").split(/\s+/).filter((x) => x.length >= 2);
+
+/** Applicants named in the message, matched in the browser (names never go to the model). Full name first, then a first or last name that is unique in the file. */
+export function namesIn(text: string, ds: Dataset): string[] {
+  const words = new Set(text.toLowerCase().normalize("NFKD").replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean));
+  const apps = ds.applications.filter((a) => a.name);
+  const full = apps.filter((a) => {
+    const t = nameTokens(a.name);
+    return t.length >= 2 && t.every((x) => words.has(x));
+  });
+  if (full.length) return [...new Set(full.map((a) => a.key))].slice(0, 3);
+  const byToken = new Map<string, string[]>();
+  for (const a of apps) for (const x of new Set(nameTokens(a.name))) if (x.length >= 4) byToken.set(x, [...(byToken.get(x) ?? []), a.key]);
+  const hit: string[] = [];
+  for (const w of words) if (byToken.get(w)?.length === 1) hit.push(byToken.get(w)![0]);
+  return [...new Set(hit)].slice(0, 3);
+}
+
+// "approve ...", "decline ...": the rules decide, nobody is approved or declined by typing it
+const OVERRIDE = /^\s*(?:(?:please|pls|can you|could you|just|go ahead and)\s+)*(approve|accept|select|shortlist|decline|reject|waitlist)\b(.*)$/i;
+/** A help reply that already says everything it can: the model is not asked to improve it. */
+export const isFinalHelp = (c: Command): boolean => c.intent === "help" && !!c.reason && c.reason.includes("Decisions come from the rules");
+const verbOf = (v: string) => (/^(decline|reject)/i.test(v) ? "decline" : /^waitlist/i.test(v) ? "waitlist" : "approve");
+
 function statusIn(text: string): Status | undefined {
   for (const [re, s] of STATUS_WORDS) if (re.test(text)) return s;
   return undefined;
@@ -187,6 +211,7 @@ export function parseRules(message: string, ds: Dataset, mem: ChatMemory): Parse
   for (const raw of clauses(message)) {
     const c = raw.toLowerCase();
     let ids = idsIn(raw);
+    if (!ids.length) ids = namesIn(raw, ds);
     let ters = tersIn(raw);
     // bare "7" after "app" handled by APP_RE; pronouns and "the other one"
     if (!ids.length && OTHER.test(c)) {
@@ -239,6 +264,28 @@ export function parseRules(message: string, ds: Dataset, mem: ChatMemory): Parse
     const pol = policyFrom(c);
     if (pol && !ids.length) {
       commands.push({ intent: "policy_change", path: pol.path, value: pol.value, hypothetical: hypo || !/\b(set|change|make|raise|lower|update)\b/.test(c) });
+      continue;
+    }
+
+    // ---- "approve X" / "decline X": say how decisions work, then show where X stands ----
+    const ov = OVERRIDE.exec(raw);
+    if (ov && !ters.length) {
+      const verb = verbOf(ov[1]);
+      const app = ids.length ? ds.applications.find((a) => a.key === ids[0]) : undefined;
+      if (app) {
+        commands.push({ intent: "help", reason: `Decisions come from the rules, so I can't ${verb} ${app.name} (${app.id}) by hand. Here is where it stands and what would change it:` });
+        commands.push({ intent: "explain", ids: [app.key] });
+        commands.push({ intent: "what_would_it_take", ids: [app.key] });
+        lastIds = [app.key, ...lastIds.filter((x) => x !== app.key)].slice(0, 6);
+      } else {
+        const phrase = ov[2].replace(/[^\p{L}\s.'-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+        const want = new Set(nameTokens(phrase).filter((x) => x.length >= 3));
+        const near = ds.applications.filter((a) => nameTokens(a.name).some((x) => want.has(x))).slice(0, 3).map((a) => `${a.name} (${a.id})`);
+        commands.push({
+          intent: "help",
+          reason: `${phrase ? `I can't find "${phrase}" in this file. ` : ""}${near.length ? `Did you mean ${near.join(", ")}? ` : ""}Decisions come from the rules, so I can't ${verb} anyone by hand.`.slice(0, 200),
+        });
+      }
       continue;
     }
 
